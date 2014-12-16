@@ -212,7 +212,7 @@ public class TableInput extends BaseStep implements StepInterface {
     // Open the query with the optional parameters received from the source steps.
     String sql = null;
     if ( meta.isVariableReplacementActive() ) {
-      sql = environmentSubstitute( meta.getSQL() );
+      sql = data.db.environmentSubstitute( meta.getSQL() );
     } else {
       sql = meta.getSQL();
     }
