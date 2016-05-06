@@ -217,6 +217,59 @@ public class KettleDatabaseRepository extends KettleDatabaseRepositoryBase {
     return true;
   }
 
+  @Override public void create() {
+    System.out.println( "Loading repository info..." );
+
+    if ( repositoryMeta.getConnection() != null ) {
+      if ( repositoryMeta.getConnection().getAccessType() == DatabaseMeta.TYPE_ACCESS_ODBC ) {
+        // Show message about error
+      }
+
+      try {
+        if ( !getDatabaseMeta().getDatabaseInterface().supportsRepository() ) {
+          // show error about not being valid
+        }
+
+        connectionDelegate.connect( true, true );
+        boolean upgrade = false;
+
+        try {
+          String userTableName = getDatabaseMeta().quoteField( KettleDatabaseRepository.TABLE_R_USER );
+          upgrade = getDatabase().checkTableExists( userTableName );
+          if ( upgrade ) {
+
+          }
+        } catch ( KettleDatabaseException dbe ) {
+          // Roll back the connection: this is required for certain databases like PGSQL
+          // Otherwise we can't execute any other DDL statement.
+          //
+          rollback();
+
+          // Don't show an error anymore, just go ahead and propose to create the repository!
+        }
+
+        String pwd = "admin";
+        if ( pwd != null ) {
+          try {
+            // authenticate as admin before upgrade
+            // disconnect before connecting, we connected above already
+            //
+            disconnect();
+            connect( "admin", pwd, true );
+          } catch ( KettleException e ) {
+            // Log the appropriate error
+          }
+        }
+
+        createRepositorySchema( null, upgrade, new ArrayList<String>(), false );
+
+        disconnect();
+      } catch ( KettleException ke ) {
+        // Log the appropriate error
+      }
+    }
+  }
+
   /**
    * Add the repository service to the map and add the interface to the list
    *

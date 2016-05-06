@@ -22,6 +22,7 @@
 
 package org.pentaho.di.repository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +74,7 @@ public interface RepositoryMeta {
    *          the description to set
    */
   public abstract void setDescription( String description );
-
+  
   /**
    * @return the isDefault
    */
@@ -94,6 +95,6 @@ public interface RepositoryMeta {
 
   public RepositoryMeta clone();
 
-  public abstract void populate( Map<String, Object> properties );
+  public abstract void populate( Map<String, Object> properties, RepositoriesMeta repositoriesMeta );
 
 }
