@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:HTML="http://www.w3.org/Profiles/XHTML-transitional"
+         xmlns:pen="http://www.pentaho.org/2008/xul">
+
+  <menupopup id="repository-popup">
+    <menuitem id="repository-connect" label="Connect..." command="repoMenuController.connect()"/>
+    <menu id="repository-connect-menu" label="Connect">
+      <menupopup id="repository-connect-popup"/>
+    </menu>
+    <menuitem id="repository-disconnect" acceltext="CTRL-D" accesskey="ctrl-d" label="Disconnect repository"
+              command="repoMenuController.disconnect()"/>
+    <menuitem id="repository-explore" acceltext="CTRL-E" accesskey="ctrl-e" disabled="true"
+              label="${Spoon.Menu.Repository.ExploreRepository}" command="spoon.exploreRepository()"/>
+    <menuseparator/>
+    <menuitem id="repository-clear-shared-object-cache" disabled="true"
+              label="${Spoon.Menu.Repository.ClearSharedObjectCache}" command="spoon.clearSharedObjectCache()"/>
+    <menuseparator/>
+    <menuitem id="repository-export-all" label="${Spoon.Menu.Repository.ExportAll}"
+              command="spoon.exportRepositoryAll()"/>
+    <menuitem id="repository-import-directory" label="${Spoon.Menu.Repository.ImportFiles}"
+              command="spoon.importDirectoryToRepository()"/>
+  </menupopup>
+
+</overlay>

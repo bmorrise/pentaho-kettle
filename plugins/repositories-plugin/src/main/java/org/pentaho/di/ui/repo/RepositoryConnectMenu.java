@@ -36,6 +36,8 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.RepositoriesMeta;
 import org.pentaho.di.repository.RepositoryMeta;
+import org.pentaho.di.ui.repo.controller.RepositoryController;
+import org.pentaho.di.ui.repo.model.RepositoryModel;
 import org.pentaho.di.ui.spoon.Spoon;
 
 public class RepositoryConnectMenu {
@@ -49,12 +51,20 @@ public class RepositoryConnectMenu {
   private ToolItem connectButton;
   private ToolItem connectDropdown;
   private RepositoriesMeta repositoriesMeta;
-  private final RepositoryConnectController repoConnectController;
+  private final RepositoryController repositoryController;
+  private final RepositoryModel repositoryModel;
 
-  public RepositoryConnectMenu( Spoon spoon, ToolBar toolBar ) {
+  public RepositoryConnectMenu( Spoon spoon, ToolBar toolBar, RepositoryController repositoryController,
+                                RepositoryModel repositoryModel ) {
     this.toolBar = toolBar;
     this.spoon = spoon;
-    repoConnectController = new RepositoryConnectController();
+    this.repositoryController = repositoryController;
+    this.repositoryModel = repositoryModel;
+    repositoryController.addListener( new RepositoryController.RepositoryListener() {
+      @Override public void change() {
+        renderAndUpdate();
+      }
+    } );
   }
 
   public void update() {
@@ -106,7 +116,7 @@ public class RepositoryConnectMenu {
     connectButton.setText( BaseMessages.getString( PKG, "RepositoryConnectMenu.Connect" ) );
     connectButton.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-        new RepositoryDialog( spoon.getShell(), repoConnectController ).openCreation();
+        new RepositoryDialog( spoon.getShell(), repositoryController ).openCreation();
         renderAndUpdate();
       }
     } );
@@ -118,29 +128,27 @@ public class RepositoryConnectMenu {
     connectDropdown.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent event ) {
         final Menu connectionMenu = new Menu( toolBar.getShell() );
-        if ( repositoriesMeta != null ) {
-          for ( int i = 0; i < repositoriesMeta.nrRepositories(); i++ ) {
-            MenuItem item = new MenuItem( connectionMenu, SWT.CHECK );
-            item.setText( repositoriesMeta.getRepository( i ).getName() );
-            if ( spoon.rep != null && spoon.rep.getName().equals( repositoriesMeta.getRepository( i ).getName() ) ) {
-              item.setSelection( true );
-              continue;
-            }
-            item.addSelectionListener( new SelectionAdapter() {
-              @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-                String repoName = ( (MenuItem) selectionEvent.widget ).getText();
-                RepositoryMeta repositoryMeta = repositoriesMeta.findRepository( repoName );
-                if ( repositoryMeta != null ) {
-                  if ( repositoryMeta.getId().equals( "KettleFileRepository" ) ) {
-                    repoConnectController.connectToRepository( repositoryMeta );
-                  } else {
-                    new RepositoryDialog( spoon.getShell(), repoConnectController ).openLogin( repositoryMeta );
-                  }
-                  renderAndUpdate();
-                }
-              }
-            } );
+        for ( String repositoryName : repositoryModel.getRepositories() ) {
+          MenuItem item = new MenuItem( connectionMenu, SWT.CHECK );
+          item.setText( repositoryName );
+          if ( repositoryName.equals( repositoryModel.getConnectedRepository() ) ) {
+            item.setSelection( true );
+            continue;
           }
+          item.addSelectionListener( new SelectionAdapter() {
+            @Override public void widgetSelected( SelectionEvent selectionEvent ) {
+              String repoName = ( (MenuItem) selectionEvent.widget ).getText();
+              RepositoryMeta repositoryMeta = repositoriesMeta.findRepository( repoName );
+              if ( repositoryMeta != null ) {
+                if ( repositoryMeta.getId().equals( "KettleFileRepository" ) ) {
+                  repositoryController.connectToRepository( repositoryMeta );
+                } else {
+                  new RepositoryDialog( spoon.getShell(), repositoryController ).openLogin( repositoryMeta );
+                }
+                renderAndUpdate();
+              }
+            }
+          } );
         }
 
         new MenuItem( connectionMenu, SWT.SEPARATOR );
@@ -148,7 +156,7 @@ public class RepositoryConnectMenu {
         managerItem.setText( BaseMessages.getString( PKG, "RepositoryConnectMenu.RepositoryManager" ) );
         managerItem.addSelectionListener( new SelectionAdapter() {
           @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-            new RepositoryDialog( spoon.getShell(), repoConnectController ).openManager();
+            new RepositoryDialog( spoon.getShell(), repositoryController ).openManager();
             renderAndUpdate();
           }
         } );
@@ -159,7 +167,7 @@ public class RepositoryConnectMenu {
         disconnectItem.setText( BaseMessages.getString( PKG, "RepositoryConnectMenu.Disconnect" ) );
         disconnectItem.addSelectionListener( new SelectionAdapter() {
           @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-            spoon.closeRepository();
+            repositoryController.disconnect();
             renderAndUpdate();
           }
         } );

@@ -23,6 +23,9 @@
 package org.pentaho.di.ui.repo;
 
 import org.eclipse.swt.widgets.ToolBar;
+import org.pentaho.di.ui.repo.controller.RepositoryController;
+import org.pentaho.di.ui.repo.handler.RepositoryMenuHandler;
+import org.pentaho.di.ui.repo.model.RepositoryModel;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.SpoonLifecycleListener;
 import org.pentaho.di.ui.spoon.SpoonPerspective;
@@ -41,10 +44,18 @@ public class RepositorySpoonPlugin implements SpoonPluginInterface {
   @Override
   public void applyToContainer( String category, XulDomContainer container ) throws XulException {
     if ( category.equals( SPOON_CATEGORY ) ) {
+      RepositoryModel repositoryModel = new RepositoryModel();
+      RepositoryController repositoryController = new RepositoryController( repositoryModel );
+
+      container.registerClassLoader( getClass().getClassLoader() );
       XulToolbar toolbar = (XulToolbar) container.getDocumentRoot().getElementById( "main-toolbar" );
       RepositoryConnectMenu repoConnectMenu =
-        new RepositoryConnectMenu( Spoon.getInstance(), (ToolBar) toolbar.getManagedObject() );
+        new RepositoryConnectMenu( Spoon.getInstance(), (ToolBar) toolbar.getManagedObject(),
+          repositoryController, repositoryModel );
       repoConnectMenu.render();
+
+      container.loadOverlay( "org/pentaho/di/ui/repo/xul/repo_connect.xul" );
+      container.addEventHandler( new RepositoryMenuHandler( repositoryController, repositoryModel ) );
     }
   }
 

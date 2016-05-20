@@ -40,6 +40,8 @@ import org.pentaho.di.repository.RepositoriesMeta;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.repository.filerep.KettleFileRepositoryMeta;
+import org.pentaho.di.ui.repo.controller.RepositoryController;
+import org.pentaho.di.ui.repo.model.RepositoryModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,7 +84,10 @@ public class RepositoryConnectControllerTest {
   @Mock
   DatabaseMeta databaseMeta;
 
-  private RepositoryConnectController controller;
+  @Mock
+  RepositoryModel repositoryModel;
+
+  private RepositoryController controller;
 
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -93,7 +98,7 @@ public class RepositoryConnectControllerTest {
 
   @Before
   public void setUp() {
-    controller = new RepositoryConnectController( pluginRegistry, null, repositoriesMeta );
+    controller = new RepositoryController( pluginRegistry, null, repositoriesMeta, repositoryModel );
 
     when( pluginInterface.getName() ).thenReturn( PLUGIN_NAME );
     when( pluginInterface.getIds() ).thenReturn( new String[] { ID } );

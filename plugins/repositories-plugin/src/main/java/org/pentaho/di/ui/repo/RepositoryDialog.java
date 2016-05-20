@@ -34,6 +34,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.ui.core.database.dialog.DatabaseDialog;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
+import org.pentaho.di.ui.repo.controller.RepositoryController;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.platform.settings.ServerPort;
 import org.pentaho.platform.settings.ServerPortRegistry;
@@ -63,10 +64,10 @@ public class RepositoryDialog extends ThinDialog {
   private static final String OSGI_SERVICE_PORT = "OSGI_SERVICE_PORT";
 
 
-  private RepositoryConnectController controller;
+  private RepositoryController controller;
   private Shell shell;
 
-  public RepositoryDialog( Shell shell, RepositoryConnectController controller ) {
+  public RepositoryDialog( Shell shell, RepositoryController controller ) {
     super( shell, WIDTH, HEIGHT );
     this.controller = controller;
     this.shell = shell;
@@ -80,8 +81,6 @@ public class RepositoryDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
-        browser.dispose();
-        dialog.close();
         dialog.dispose();
         return true;
       }
