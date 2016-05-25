@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.ui.repo;
+package org.pentaho.di.ui.repo.controller;
 
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -41,6 +41,8 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.repository.filerep.KettleFileRepositoryMeta;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.repo.controller.RepositoryController;
+import org.pentaho.di.ui.repo.model.RepositoryModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,15 +57,15 @@ import static org.mockito.Mockito.*;
  * Created by bmorrise on 5/3/16.
  */
 @RunWith( MockitoJUnitRunner.class )
-public class RepositoryConnectControllerTest {
+public class RepositoryControllerTest {
 
-  public static final String PLUGIN_NAME = "PLUGIN NAME";
-  public static final String ID = "ID";
-  public static final String PLUGIN_DESCRIPTION = "PLUGIN DESCRIPTION";
-  public static final String DATABASE_NAME = "DATABASE NAME";
-  public static final String REPOSITORY_NAME = "Repository Name";
-  public static final String REPOSITORY_ID = "Repository ID";
-  public static final String REPOSITORY_DESCRIPTION = "Repository Description";
+  private static final String PLUGIN_NAME = "PLUGIN NAME";
+  private static final String ID = "ID";
+  private static final String PLUGIN_DESCRIPTION = "PLUGIN DESCRIPTION";
+  private static final String DATABASE_NAME = "DATABASE NAME";
+  private static final String REPOSITORY_NAME = "Repository Name";
+  private static final String REPOSITORY_ID = "Repository ID";
+  private static final String REPOSITORY_DESCRIPTION = "Repository Description";
 
   @Mock
   RepositoriesMeta repositoriesMeta;
@@ -86,7 +88,10 @@ public class RepositoryConnectControllerTest {
   @Mock
   PropsUI propsUI;
 
-  private RepositoryConnectController controller;
+  @Mock
+  RepositoryModel repositoryModel;
+
+  private RepositoryController controller;
 
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -97,7 +102,7 @@ public class RepositoryConnectControllerTest {
 
   @Before
   public void setUp() {
-    controller = new RepositoryConnectController( pluginRegistry, null, repositoriesMeta, propsUI );
+    controller = new RepositoryController( pluginRegistry, null, repositoriesMeta, repositoryModel, propsUI );
 
     when( pluginInterface.getName() ).thenReturn( PLUGIN_NAME );
     when( pluginInterface.getIds() ).thenReturn( new String[] { ID } );
@@ -174,7 +179,7 @@ public class RepositoryConnectControllerTest {
     when( pluginRegistry.loadClass( RepositoryPluginType.class, repositoryMeta.getId(), Repository.class ) )
       .thenReturn( repository );
 
-    controller.setCurrentRepository( repositoryMeta );
+    when( repositoryModel.getCurrentRepositoryMeta() ).thenReturn( repositoryMeta );
     controller.connectToRepository();
 
     verify( repository ).init( repositoryMeta );

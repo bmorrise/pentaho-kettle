@@ -20,9 +20,8 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.ui.repo;
+package org.pentaho.di.ui.repo.controller;
 
-import com.sun.xml.ws.client.ClientTransportException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -38,8 +37,10 @@ import org.pentaho.di.repository.RepositoriesMeta;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.repo.model.RepositoryModel;
 import org.pentaho.di.ui.spoon.Spoon;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.PropertyResourceBundle;
@@ -48,37 +49,43 @@ import java.util.ResourceBundle;
 /**
  * Created by bmorrise on 4/18/16.
  */
-public class RepositoryConnectController {
+public class RepositoryController {
 
   public static final String DEFAULT_URL = "defaultUrl";
   public static final String ERROR_MESSAGE = "errorMessage";
   public static final String ERROR_401 = "401";
 
-  private static Class<?> PKG = RepositoryConnectController.class;
+  private static Class<?> PKG = RepositoryController.class;
   private static LogChannelInterface log =
-    KettleLogStore.getLogChannelInterfaceFactory().create( RepositoryConnectController.class );
+    KettleLogStore.getLogChannelInterfaceFactory().create( RepositoryController.class );
 
-  private RepositoryMeta currentRepository;
   private RepositoriesMeta repositoriesMeta;
   private PluginRegistry pluginRegistry;
   private Spoon spoon;
   private PropsUI propsUI;
+  private RepositoryModel repositoryModel;
+  private List<RepositoryListener> listeners = new ArrayList<>();
+  private RepositoryMeta currentRepository;
 
-  public RepositoryConnectController( PluginRegistry pluginRegistry, Spoon spoon, RepositoriesMeta repositoriesMeta,
-                                      PropsUI propsUI ) {
+  public RepositoryController( PluginRegistry pluginRegistry, Spoon spoon, RepositoriesMeta repositoriesMeta,
+                               RepositoryModel repositoryModel,
+                               PropsUI propsUI ) {
     this.pluginRegistry = pluginRegistry;
     this.spoon = spoon;
     this.repositoriesMeta = repositoriesMeta;
     this.propsUI = propsUI;
+    this.repositoryModel = repositoryModel;
     try {
       repositoriesMeta.readData();
     } catch ( KettleException ke ) {
       log.logError( "Unable to load repositories", ke );
     }
+    repositoryModel.setRepositories( getRepositoryList() );
   }
 
-  public RepositoryConnectController() {
-    this( PluginRegistry.getInstance(), Spoon.getInstance(), new RepositoriesMeta(), PropsUI.getInstance() );
+  public RepositoryController( RepositoryModel repositoryModel ) {
+    this( PluginRegistry.getInstance(), Spoon.getInstance(), new RepositoriesMeta(), repositoryModel,
+      PropsUI.getInstance() );
   }
 
   @SuppressWarnings( "unchecked" )
@@ -86,7 +93,7 @@ public class RepositoryConnectController {
     List<PluginInterface> plugins = pluginRegistry.getPlugins( RepositoryPluginType.class );
     JSONArray list = new JSONArray();
     for ( PluginInterface pluginInterface : plugins ) {
-      if ( !pluginInterface.getIds()[0].equals( "PentahoEnterpriseRepository" ) ) {
+      if ( !pluginInterface.getIds()[ 0 ].equals( "PentahoEnterpriseRepository" ) ) {
         JSONObject repoJSON = new JSONObject();
         repoJSON.put( "id", pluginInterface.getIds()[ 0 ] );
         repoJSON.put( "name", pluginInterface.getName() );
@@ -106,22 +113,36 @@ public class RepositoryConnectController {
         Repository repository =
           pluginRegistry.loadClass( RepositoryPluginType.class, repositoryMeta.getId(), Repository.class );
         repository.init( repositoryMeta );
-        if ( currentRepository != null ) {
-          repositoriesMeta.removeRepository( repositoriesMeta.indexOfRepository( currentRepository ) );
+        if ( repositoryModel.getCurrentRepositoryMeta() != null ) {
+          repositoriesMeta.removeRepository( repositoriesMeta.indexOfRepository(
+            repositoryModel.getCurrentRepositoryMeta() ) );
         }
         repositoriesMeta.addRepository( repositoryMeta );
-        repositoriesMeta.writeData();
-        currentRepository = repositoryMeta;
-        if ( !( (AbstractRepository) repository ).test() ) {
+        repositoryModel.setCurrentRepositoryMeta( repositoryMeta );
+        if ( save() ) {
+          if ( !( (AbstractRepository) repository ).test() ) {
+            return false;
+          }
+          ( (AbstractRepository) repository ).create();
+        } else {
           return false;
         }
-        ( (AbstractRepository) repository ).create();
       }
     } catch ( KettleException ke ) {
       log.logError( "Unable to load repository type", ke );
       return false;
     }
     return true;
+  }
+
+  public List<String> getRepositoryList() {
+    List<String> repositories = new ArrayList<>();
+    if ( repositoriesMeta != null ) {
+      for ( int i = 0; i < repositoriesMeta.nrRepositories(); i++ ) {
+        repositories.add( repositoriesMeta.getRepository( i ).getName() );
+      }
+    }
+    return repositories;
   }
 
   @SuppressWarnings( "unchecked" )
@@ -138,7 +159,7 @@ public class RepositoryConnectController {
   public String getRepository( String name ) {
     RepositoryMeta repositoryMeta = repositoriesMeta.findRepository( name );
     if ( repositoryMeta != null ) {
-      currentRepository = repositoryMeta;
+      repositoryModel.setCurrentRepositoryMeta( repositoryMeta );
       return repositoryMeta.toJSONObject().toString();
     }
     return "";
@@ -168,17 +189,18 @@ public class RepositoryConnectController {
   }
 
   public String connectToRepository() {
-    return connectToRepository( currentRepository );
+    return connectToRepository( repositoryModel.getCurrentRepositoryMeta() );
   }
 
   public String connectToRepository( String username, String password ) {
-    return connectToRepository( currentRepository, username, password );
+    return connectToRepository( repositoryModel.getCurrentRepositoryMeta(), username, password );
   }
 
   public String connectToRepository( RepositoryMeta repositoryMeta ) {
     return connectToRepository( repositoryMeta, null, null );
   }
 
+  @SuppressWarnings( "unchecked" )
   public String connectToRepository( RepositoryMeta repositoryMeta, String username, String password ) {
     JSONObject jsonObject = new JSONObject();
     try {
@@ -189,10 +211,12 @@ public class RepositoryConnectController {
       if ( username != null ) {
         propsUI.setLastRepositoryLogin( username );
       }
+      repositoryModel.setConnectedRepository( repositoryMeta.getName() );
       if ( spoon != null ) {
         spoon.closeAllJobsAndTransformations();
         spoon.setRepository( repository );
       }
+      fireListeners();
       jsonObject.put( "success", true );
     } catch ( KettleException ke ) {
       if ( ke.getMessage().contains( ERROR_401 ) ) {
@@ -212,7 +236,7 @@ public class RepositoryConnectController {
     if ( index != -1 ) {
       if ( spoon != null && spoon.getRepositoryName() != null && spoon.getRepositoryName()
         .equals( repositoryMeta.getName() ) ) {
-        spoon.closeRepository();
+        disconnect();
       }
       repositoriesMeta.removeRepository( index );
       save();
@@ -253,18 +277,47 @@ public class RepositoryConnectController {
   }
 
   public void setCurrentRepository( RepositoryMeta repositoryMeta ) {
-    this.currentRepository = repositoryMeta;
+    repositoryModel.setCurrentRepositoryMeta( repositoryMeta );
+  }
+
+  public RepositoryMeta getRepositoryMeta( String name ) {
+    return repositoriesMeta.findRepository( name );
   }
 
   public RepositoryMeta getCurrentRepository() {
-    return this.currentRepository;
+    return currentRepository;
   }
 
-  public void save() {
+  public void disconnect() {
+    repositoryModel.setConnectedRepository( null );
+    repositoryModel.setConnectionName( "Connect" );
+    spoon.closeRepository();
+    fireListeners();
+  }
+
+  public boolean save() {
     try {
       repositoriesMeta.writeData();
+      repositoryModel.setRepositories( getRepositoryList() );
+      fireListeners();
     } catch ( KettleException ke ) {
       log.logError( "Unable to write to repositories", ke );
+      return false;
     }
+    return true;
+  }
+
+  public void fireListeners() {
+    for ( RepositoryListener listener : listeners ) {
+      listener.change();
+    }
+  }
+
+  public void addListener( RepositoryListener repositoryListener ) {
+    listeners.add( repositoryListener );
+  }
+
+  public interface RepositoryListener {
+    void change();
   }
 }

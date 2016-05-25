@@ -145,22 +145,6 @@
             <menuitem id="tools-data-clear-cache" label="${Spoon.Menu.Tools.Data.Clear.Cache}" command="spoon.clearDBCache('database-class-clear-cache')" />
           </menupopup>
         </menu>
-        <menu id="repository" label="${Spoon.Menu.Repository}">
-          <menupopup id="repository-popup">
-            <menuitem id="repository-connect" acceltext="CTRL-R" accesskey="ctrl-r"
-              label="${Spoon.Menu.Repository.ConnectToRepository}" command="spoon.openRepository()" />
-            <menuitem id="repository-disconnect" acceltext="CTRL-D" accesskey="ctrl-d" disabled="true"
-              label="${Spoon.Menu.Repository.DisconnectRepository}" command="spoon.closeRepository()" />
-            <menuitem id="repository-explore" acceltext="CTRL-E" accesskey="ctrl-e" disabled="true"
-              label="${Spoon.Menu.Repository.ExploreRepository}" command="spoon.exploreRepository()" />
-            <menuseparator />
-            <menuitem id="repository-clear-shared-object-cache" disabled="true"
-              label="${Spoon.Menu.Repository.ClearSharedObjectCache}" command="spoon.clearSharedObjectCache()" />
-            <menuseparator />
-            <menuitem id="repository-export-all" label="${Spoon.Menu.Repository.ExportAll}" command="spoon.exportRepositoryAll()" />
-            <menuitem id="repository-import-directory" label="${Spoon.Menu.Repository.ImportFiles}" command="spoon.importDirectoryToRepository()" />            
-          </menupopup>
-        </menu>
         <menu id="wizard" label="${Spoon.Menu.Wizard}">
           <menupopup id="wizard-popup">
             <menuitem id="wizard-connection" acceltext="F3" accesskey="f3"

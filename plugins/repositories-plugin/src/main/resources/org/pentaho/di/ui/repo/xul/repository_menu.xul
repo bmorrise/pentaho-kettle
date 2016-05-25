@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:HTML="http://www.w3.org/Profiles/XHTML-transitional"
+         xmlns:pen="http://www.pentaho.org/2008/xul">
+
+  <menupopup id="tools-popup">
+    <menu id="repository" label="${Spoon.Menu.Repository}" insertafter="tools-data">
+      <menupopup id="repository-popup">
+        <menuitem id="repository-connect" label="${Repository.Menu.Connect}" command="repositoryMenuHandler.connect()"
+                  acceltext="CTRL-R"
+                  accesskey="ctrl-r"/>
+        <menu id="repository-connect-menu" label="${Repository.Menu.Connect}">
+          <menupopup id="repository-connect-popup"/>
+        </menu>
+        <menuitem id="repository-disconnect" acceltext="CTRL-D" accesskey="ctrl-d" label="${Repository.Menu.Disconnect}"
+                  command="repositoryMenuHandler.disconnect()"/>
+        <menuitem id="repository-manager" label="${Repository.Menu.RepositoryManager}"
+                  command="repositoryMenuHandler.showRepositoryManager()"/>
+        <menuitem id="repository-explore" acceltext="CTRL-E" accesskey="ctrl-e" disabled="true"
+                  label="${Repository.Menu.Explore}" command="spoon.exploreRepository()"/>
+        <menuseparator/>
+        <menuitem id="repository-clear-shared-object-cache" disabled="true"
+                  label="${Repository.Menu.ClearSharedObjectCache}" command="spoon.clearSharedObjectCache()"/>
+        <menuseparator/>
+        <menuitem id="repository-export-all" label="${Repository.Menu.Export}"
+                  command="spoon.exportRepositoryAll()"/>
+        <menuitem id="repository-import-directory" label="${Repository.Menu.Import}"
+                  command="spoon.importDirectoryToRepository()"/>
+      </menupopup>
+    </menu>
+  </menupopup>
+
+</overlay>
