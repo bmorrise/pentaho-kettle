@@ -75,11 +75,6 @@ define([
     vm.updateDirectories = updateDirectories;
     vm.renameError = renameError;
     vm.duplicateError = duplicateError;
-    vm.displayRecentSearches = displayRecentSearches;
-    vm.focusSearchBox = focusSearchBox;
-    vm.setTooltip = setTooltip;
-    vm.getOffsetTop = getOffsetTop;
-    vm.getOffsetLeft = getOffsetLeft;
     vm.recentsHasScrollBar = recentsHasScrollBar;
     vm.selectedFolder = "";
     vm.fileToSave = "";
@@ -104,7 +99,6 @@ define([
       vm.saveFileNameLabel = i18n.get("file-open-save-plugin.app.save.file-name.label");
       vm.addFolderText = i18n.get("file-open-save-plugin.app.add-folder.button");
       vm.removeText = i18n.get("file-open-save-plugin.app.delete.button");
-      vm.isInSearch = false;
       vm.showRecents = true;
       vm.folder = {name: "Recents", path: "Recents"};
       vm.selectedFolder = vm.folder.name;
@@ -255,7 +249,6 @@ define([
      * Calls a filter for either recent files or files/folders in current folder
      */
     function doSearch() {
-      vm.isInSearch = false;
       vm.showMessage = true;
       if (vm.showRecents === true) {
         _filter(vm.recentFiles, vm.searchString);
@@ -466,35 +459,9 @@ define([
      * Stores the most recent search
      */
     function storeRecentSearch() {
-      vm.isInSearch = false;
       if (vm.searchString !== "") {
         dt.storeRecentSearch(vm.searchString).then(_populateRecentSearches);
       }
-    }
-
-    function displayRecentSearches() {
-      if(vm.recentSearches.length !== 0) {
-        vm.isInSearch = true
-      }
-    }
-
-    function focusSearchBox() {
-      document.getElementById("searchBoxId").focus();
-    }
-
-    function setTooltip(id, tooltip) {
-        var searchItem = document.getElementById("search-item-index-" + id);
-        if( searchItem.scrollWidth > 267 ) {
-            searchItem.title = tooltip;
-        }
-    }
-
-    function getOffsetTop() {
-      return document.getElementById("headerSearchId").offsetTop;
-    }
-
-    function getOffsetLeft() {
-      return document.getElementById("headerSearchId").offsetLeft;
     }
 
     /**

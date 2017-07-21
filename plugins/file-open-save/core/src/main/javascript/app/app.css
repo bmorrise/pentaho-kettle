@@ -73,26 +73,22 @@ file-open-save-app .headerTitle {
 }
 
 file-open-save-app .headerSearch {
-  width: 270px;
+  width: 235px;
   height: 34px;
   float: right;
   border: 1px solid #CCC;
   border-radius: 4px;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
-}
-
-file-open-save-app .headerSearchLeft {
   background: url("./img/search_gray.png") no-repeat left 8px center;
-  width: 30px;
-  height: 100%;
-  border: none;
-  cursor: text;
-  float: left;
+  padding-left: 35px;
+  font-size: 14px;
 }
 
-file-open-save-app .headerSearchLeft.blueState {
+file-open-save-app .headerSearch:focus {
   background: url("./img/search_blue.png") no-repeat left 7px center;
+  border: 1px solid #005DA6;
+  outline: none;
 }
 
 file-open-save-app .headerSearchRight {
@@ -101,33 +97,48 @@ file-open-save-app .headerSearchRight {
   height: 100%;
   border: none;
   cursor: pointer;
-  float: left;
-}
-
-file-open-save-app .headerSearchRightInvisible {
-  width: 28px;
-  height: 100%;
-  border: none;
-  cursor: text;
-  float: left;
+  position: absolute;
+  left: 240px;
 }
 
 file-open-save-app .headerSearchRight:hover {
   background: url("./img/clear_blue.png") no-repeat center center;
 }
 
-file-open-save-app input.searchBox,
-file-open-save-app input.searchBox:focus {
-  width: calc(270px - 60px);
-  /*width: 240px;*/
-  height: 100%;
-  border: none;
-  padding: 0;
-  float: left;
-}
-
 file-open-save-app input.searchBox.home, file-open-save-app input.searchBox.public {
   text-transform: capitalize;
+}
+
+.searchHistory {
+  float: right;
+  position: relative;
+}
+
+.searchHistoryList {
+  position: absolute;
+  list-style-type: none;
+  background-color: #ffffff;
+  -moz-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.4);
+  padding: 5px 0;
+  max-width: 267px;
+  min-width: 267px;
+  z-index: 100;
+  border: 1px solid #f2f2f2;
+  left: 2px;
+  top: 25px;
+}
+
+.searchHistoryList li {
+  padding: 5px 10px 5px 10px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.searchHistoryList li:hover {
+  background-color: #E6EFF6;
 }
 
 /*HIDES THE X ON THE SEARCHBOX ON IE11*/
@@ -350,28 +361,4 @@ file-open-save-app .fileAreaMessageView {
 file-open-save-app .open .fileAreaMessageView {
   height: 368px;
   line-height: 368px;
-}
-
-.searchBoxExtra {
-  position: absolute;
-  background-color: #ffffff;
-  -moz-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
-  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.4);
-  padding: 5px 0;
-  max-width: 267px;
-  min-width: 267px;
-  z-index: 100;
-  border: 1px solid #f2f2f2;
-}
-
-.searchBoxExtraItem {
-  padding: 5px 10px 5px 10px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.searchBoxExtraItem:hover {
-  background-color: #E6EFF6;
 }

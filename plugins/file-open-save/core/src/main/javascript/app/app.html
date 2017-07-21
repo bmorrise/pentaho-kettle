@@ -10,24 +10,14 @@
       <div class="headerTitle headerText">
         {{::vm.headerTitle}}
       </div>
-      <div id="headerSearchId" class="headerSearch" ng-class="{'focused': vm.isInSearch === true || searchBoxHasFocus === true }">
-        <div class="headerSearchLeft" ng-click="vm.focusSearchBox()" ng-class="{'blueState': vm.searchString !== '' || vm.isInSearch === true || searchBoxHasFocus === true }" ></div>
-        <input id="searchBoxId" type="text" class="searchBox" ng-class="{'home':vm.selectedFolder === 'home' && vm.folder.parent === '/','public':vm.selectedFolder === 'public' && vm.folder.parent === '/'}"
-                 placeholder="{{::vm.searchPlaceholder}} {{vm.selectedFolder}}"
-                 ng-blur="vm.storeRecentSearch();searchBoxHasFocus=false"
-                 ng-focus="vm.displayRecentSearches();searchBoxHasFocus=true"
-                 ng-change="vm.doSearch()"
-                 ng-model="vm.searchString"/>
-          <div class="searchBoxExtra" ng-show="vm.isInSearch"
-               ng-style="{top: vm.getOffsetTop() + 37 + 'px', left: vm.getOffsetLeft() + 2 + 'px'}">
-              <div class="searchBoxExtraItem"
-                   ng-mousedown="vm.searchString = search;vm.doSearch()"
-                   ng-repeat="search in vm.recentSearches"
-                   ng-mouseover="vm.setTooltip(this.$index, search)"
-                   id="search-item-index-{{this.$index}}">{{search}}</div>
-          </div>
-        <div ng-class="vm.searchString !== '' ? 'headerSearchRight' : 'headerSearchRightInvisible'" ng-click="vm.resetSearch()"></div>
-      </div>
+      <history class="searchHistory"
+               on-search="vm.doSearch()"
+               on-blur="vm.storeRecentSearch()"
+               on-reset="vm.resetSearch()"
+               value="vm.searchString"
+               searches="vm.recentSearches"
+               placeholder="vm.searchPlaceholder"
+               selected-folder="vm.selectedFolder"/>
     </div>
 
     <div class="headerBottom">

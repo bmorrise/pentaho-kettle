@@ -34,10 +34,12 @@ define([
   "./components/breadcrumb/breadcrumb.component",
   "./components/files/files.component",
   "./shared/directives/edit.directive",
+  "./shared/directives/history.directive",
   "./components/breadcrumb/breadcrumb.directive",
   "./services/data.service"
 ], function(angular, appComponent, cardComponent, folderComponent, errorComponent,
-            breadcrumbComponent, filesComponent, editDirective, breadcrumbDirective, dataService) {
+            breadcrumbComponent, filesComponent, editDirective, historyDirective,
+            breadcrumbDirective, dataService) {
   "use strict";
 
   var module = {
@@ -63,6 +65,7 @@ define([
         .component(breadcrumbComponent.name, breadcrumbComponent.options)
         .component(filesComponent.name, filesComponent.options)
         .directive(editDirective.name, editDirective.options)
+        .directive(historyDirective.name, historyDirective.options)
         .directive(breadcrumbDirective.name, breadcrumbDirective.options)
         .service(dataService.name, dataService.factory);
   }
