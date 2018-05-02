@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<overlay id="marketplace-overlay" title="Marketplace overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:HTML="http://www.w3.org/Profiles/XHTML-transitional" height="600" width="800"
+         xmlns:pen="http://www.pentaho.org/2008/xul">
+
+    <menupopup id="tools-popup">
+
+        <menuitem id="tools-plugins-quick-search-item" label="${menu_tools_quick_search_label}"
+                  insertafter="help-plugins"
+                  command="quickSearchMenuHandler.openQuickSearch()" accesskey="ctrl-shift-f" acceltext="CTRL-SHIFT-F" />
+
+    </menupopup>
+
+</overlay>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin title="Plugin to enable quick search" name="quick-search">
+    <lifecycle-listener class="org.pentaho.platform.repository.quicksearch.lifecycle.QuickSearchLifecycleListener"/>
+</plugin>

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>quick-search-client-api</artifactId>
+    <version>8.2.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+
+    <name>Quick Search Plugin Client API</name>
+
+    <parent>
+        <groupId>org.pentaho.di.plugins</groupId>
+        <artifactId>quick-search-client</artifactId>
+        <version>8.2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <pdi.version>8.2.0.0-SNAPSHOT</pdi.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-ui-swt</artifactId>
+            <version>${pdi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.4.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Export-Package>
+                            org.pentaho.di.quicksearch,
+                            org.pentaho.di.quicksearch.result,
+                            org.pentaho.di.quicksearch.service
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
