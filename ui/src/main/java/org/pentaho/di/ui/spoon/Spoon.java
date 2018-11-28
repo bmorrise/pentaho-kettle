@@ -285,6 +285,7 @@ import org.pentaho.di.ui.spoon.trans.TransGraph;
 import org.pentaho.di.ui.spoon.tree.TreeManager;
 import org.pentaho.di.ui.spoon.tree.provider.ClustersFolderProvider;
 import org.pentaho.di.ui.spoon.tree.provider.DBConnectionFolderProvider;
+import org.pentaho.di.ui.spoon.tree.provider.EnvironmentTreeProvider;
 import org.pentaho.di.ui.spoon.tree.provider.HopsFolderProvider;
 import org.pentaho.di.ui.spoon.tree.provider.JobEntriesFolderProvider;
 import org.pentaho.di.ui.spoon.tree.provider.PartitionsFolderProvider;
@@ -6185,9 +6186,9 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
     selectionTreeManager = new TreeManager( selectionTree );
     selectionTreeManager.addRoot( STRING_TRANSFORMATIONS, Arrays.asList( new DBConnectionFolderProvider(), new
             StepsFolderProvider(), new HopsFolderProvider(), new PartitionsFolderProvider(), new SlavesFolderProvider(), new
-            ClustersFolderProvider() ) );
+            ClustersFolderProvider(), new EnvironmentTreeProvider() ) );
     selectionTreeManager.addRoot( STRING_JOBS, Arrays.asList( new DBConnectionFolderProvider(), new
-            JobEntriesFolderProvider(), new SlavesFolderProvider() ) );
+            JobEntriesFolderProvider(), new SlavesFolderProvider(), new EnvironmentTreeProvider() ) );
 
     props.setLook( selectionTree );
     selectionTree.setLayout( new FillLayout() );

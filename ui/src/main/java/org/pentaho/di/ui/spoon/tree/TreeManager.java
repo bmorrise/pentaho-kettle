@@ -25,16 +25,23 @@ package org.pentaho.di.ui.spoon.tree;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.pentaho.di.base.AbstractMeta;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.tree.TreeNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Created by bmorrise on 5/25/18.
@@ -54,6 +61,27 @@ public class TreeManager {
     this.tree = tree;
     tree.addListener( SWT.Expand, e -> setExpanded( (TreeItem) e.item, true ) );
     tree.addListener( SWT.Collapse, e -> setExpanded( (TreeItem) e.item, false ) );
+    tree.addMenuDetectListener( menuDetectEvent -> {
+      TreeItem[] treeItems = tree.getSelection();
+      Menu menu = null;
+      for ( TreeItem treeItem : treeItems ) {
+         Map<String, Object> data = (Map<String, Object>) treeItem.getData();
+         String key = (String) data.get( "KEY" );
+         if ( !Utils.isEmpty( key ) ) {
+           for ( RootNode rootNode : rootNodes ) {
+             TreeFolderProvider treeFolderProvider = rootNode.getTreeFolderProviderByKey( key );
+             if ( treeFolderProvider != null ) {
+               menu = treeFolderProvider.getPopupMenu( tree );
+             }
+           }
+         }
+       }
+       if ( menu != null ) {
+         ConstUI.displayMenu( menu, tree );
+       } else {
+         tree.setMenu( null );
+       }
+    } );
   }
 
   public TreeManager( Tree tree ) {

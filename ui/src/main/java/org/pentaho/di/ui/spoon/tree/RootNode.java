@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Created by bmorrise on 7/9/18.
@@ -114,5 +115,12 @@ public class RootNode extends TreeNode {
       return true;
     }
     return false;
+  }
+
+  public TreeFolderProvider getTreeFolderProviderByKey( String key ) {
+    return treeFolderProviders.stream()
+            .filter( treeFolderProvider -> treeFolderProvider.getKey().equals( key ) )
+            .findAny()
+            .orElse( null );
   }
 }

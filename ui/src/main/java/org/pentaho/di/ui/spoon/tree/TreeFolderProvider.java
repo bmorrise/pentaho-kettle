@@ -23,6 +23,8 @@
 package org.pentaho.di.ui.spoon.tree;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Tree;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -50,6 +52,10 @@ public abstract class TreeFolderProvider {
 
   public abstract String getTitle();
 
+  public String getKey() {
+    return "";
+  }
+
   protected boolean filterMatch( String string, String filter ) {
     return Utils.isEmpty( string ) || Utils.isEmpty( filter ) || string.toUpperCase().contains( filter.toUpperCase() );
   }
@@ -62,6 +68,7 @@ public abstract class TreeFolderProvider {
     TreeNode childTreeNode = new TreeNode();
     childTreeNode.setLabel( text );
     childTreeNode.setImage( image );
+    childTreeNode.setData( "KEY", getKey() );
 
     parent.addChild( childTreeNode );
     return childTreeNode;
@@ -69,5 +76,9 @@ public abstract class TreeFolderProvider {
 
   public void setTreeManager( TreeManager treeManager ) {
     this.treeManager = treeManager;
+  }
+
+  public Menu getPopupMenu( Tree tree ) {
+    return null;
   }
 }
