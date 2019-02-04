@@ -73,6 +73,7 @@
         <module>ms-access</module>
         <module>xml</module>
         <module>streaming</module>
+        <module>vfs-connections</module>
       </modules>
     </profile>
 
