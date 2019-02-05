@@ -29,11 +29,27 @@ define([], function() {
    */
   function config($stateProvider) {
 
-    // $stateProvider
-    //   .state('save', {
-    //     url: "/save",
-    //     template: "<fileOpenSaveApp></fileOpenSaveApp>"
-    //   })
+    $stateProvider
+      .state('intro', {
+        url: "/intro",
+        template: "<intro></intro>"
+      })
+      .state('connection-details', {
+        url: "/connection-details",
+        template: "<connection-details></connection-details>"
+      })
+      .state('summary', {
+        url: "/summary",
+        template: "<summary></summary>"
+      })
+      .state('creating', {
+        url: "/creating",
+        template: "<creating></creating>"
+      })
+      .state('final', {
+        url: "/final",
+        template: "<final></final>"
+      })
   }
   return config;
 });

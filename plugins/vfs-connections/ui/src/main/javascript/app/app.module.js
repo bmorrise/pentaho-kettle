@@ -28,9 +28,15 @@
 define([
   "angular",
   "./app.config",
-  "./app.component",
-  "angular-ui-router"
-], function(angular, appConfig, appComponent) {
+  "./app.animation",
+  "./components/intro/intro.component",
+  "./components/connection-details/connection-details.component",
+  "./components/summary/summary.component",
+  "./components/creating/creating.component",
+  "./components/final/final.component",
+  "angular-ui-router",
+  "angular-animate"
+], function(angular, appConfig, appAnimation, introComponent, connectionDetailsComponent, summaryComponent, creatingComponent, finalComponent) {
   "use strict";
 
   var module = {
@@ -48,8 +54,13 @@ define([
    * @private
    */
   function activate() {
-    angular.module(module.name, ["ui.router"])
-      .component(appComponent.name, appComponent.options)
+    angular.module(module.name, ["ui.router", "ngAnimate"])
+      .component(introComponent.name, introComponent.options)
+      .component(connectionDetailsComponent.name, connectionDetailsComponent.options)
+      .component(summaryComponent.name, summaryComponent.options)
+      .component(creatingComponent.name, creatingComponent.options)
+      .component(finalComponent.name, finalComponent.options)
+      .animation(appAnimation.class, appAnimation.factory)
       .config(appConfig);
   }
 

@@ -30,7 +30,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
@@ -48,14 +47,13 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
 
   private static final Class<?> PKG = VFSConnectionPopupMenuExtension.class;
 
-  private static final int WIDTH = 630;
-  private static final int HEIGHT = 630;
-
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
   private Menu itemMenu;
+  private VFSConnectionDelegate vfsConnectionDelegate;
 
   public VFSConnectionPopupMenuExtension() {
+    this.vfsConnectionDelegate = new VFSConnectionDelegate();
   }
 
   @Override public void callExtensionPoint( LogChannelInterface logChannelInterface, Object extension )
@@ -69,7 +67,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
 
     if ( selection == VFSConnectionDetails.class ) {
       popupMenu = createRootPopupMenu( selectionTree );
-    } else if ( selection instanceof String ) {
+    } else if ( selection instanceof VFSConnectionTreeItem ) {
       popupMenu = createItemPopupMenu( selectionTree );
     }
 
@@ -88,8 +86,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
       menuItem.addSelectionListener( new SelectionAdapter() {
         @Override
         public void widgetSelected( SelectionEvent selectionEvent ) {
-        VFSConnectionDialog vfsConnectionDialog = new VFSConnectionDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-        vfsConnectionDialog.open( "VFS Connection" );
+        vfsConnectionDelegate.openDialog();
         }
       } );
     }
@@ -103,7 +100,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
       editMenuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.Edit" ) );
       editMenuItem.addSelectionListener( new SelectionAdapter() {
         @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-
+          vfsConnectionDelegate.openDialog();
         }
       } );
 

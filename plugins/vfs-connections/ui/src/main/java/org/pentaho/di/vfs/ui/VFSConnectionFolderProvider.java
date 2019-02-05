@@ -25,8 +25,12 @@ package org.pentaho.di.vfs.ui;
 import org.eclipse.swt.graphics.Image;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.tree.TreeNode;
 import org.pentaho.di.ui.spoon.tree.TreeFolderProvider;
+import org.pentaho.di.vfs.VFSConnectionManager;
+import org.pentaho.di.vfs.providers.OtherConnectionDetailsProvider;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 /**
  * Created by bmorrise on 7/6/18.
@@ -35,43 +39,26 @@ public class VFSConnectionFolderProvider extends TreeFolderProvider {
 
   private static final Class<?> PKG = VFSConnectionFolderProvider.class;
   public static final String STRING_VFS_CONNECTIONS = BaseMessages.getString( PKG, "VFSConnectionsTree.Title" );
+  private VFSConnectionManager vfsConnectionManager;
 
-  public VFSConnectionFolderProvider() {
+  public VFSConnectionFolderProvider( MetastoreLocator metastoreLocator ) {
+    this.vfsConnectionManager = new VFSConnectionManager( metastoreLocator.getMetastore() );
+    vfsConnectionManager.addVFSConnectionProvider( "ftp", new OtherConnectionDetailsProvider() );
   }
 
   @Override
   public void refresh( AbstractMeta meta, TreeNode treeNode, String filter ) {
-//    GUIResource guiResource = GUIResource.getInstance();
-//    for ( RunConfiguration runConfiguration : runConfigurationDelegate.load() ) {
-//      if ( !filterMatch( runConfiguration.getName(), filter ) ) {
-//        continue;
-//      }
-//      String imageFile = runConfiguration.isReadOnly() ? "images/run_tree_disabled.svg" : "images/run_tree.svg";
-//      TreeNode childTreeNode = createChildTreeNode( treeNode, runConfiguration.getName(), getRunConfigurationImage(
-//              guiResource, imageFile ) );
-//      if ( runConfiguration.isReadOnly() ) {
-//        childTreeNode.setForeground( getDisabledColor() );
-//      }
-//    }
+    for ( String name : vfsConnectionManager.getNames() ) {
+      if ( !filterMatch( name, filter ) ) {
+        continue;
+      }
+      super.createTreeNode( treeNode, name, GUIResource.getInstance().getImageSlaveTree() );
+    }
   }
-
-//  private Image getRunConfigurationImage( GUIResource guiResource, String file ) {
-//    return guiResource
-//            .getImage( file, getClass().getClassLoader(), ConstUI.MEDIUM_ICON_SIZE, ConstUI.MEDIUM_ICON_SIZE );
-//  }
-
-//  private Color getDisabledColor() {
-//    Device device = Display.getCurrent();
-//    return new Color( device, 188, 188, 188 );
-//  }
 
   @Override
   public String getTitle() {
     return STRING_VFS_CONNECTIONS;
-  }
-
-  private TreeNode createChildTreeNode( TreeNode parent, String text, Image image ) {
-    return super.createTreeNode( parent, text, image );
   }
 
   @Override

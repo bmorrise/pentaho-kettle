@@ -61,7 +61,7 @@ public class VFSConnectionTreeDelegateExtension implements ExtensionPointInterfa
         case 4:
           try {
             final String name = path[ 3 ];
-            object = new TreeSelection( name, name, meta );
+            object = new TreeSelection( name, new VFSConnectionTreeItem( name ), meta );
           } catch ( Exception e ) {
             // Do Nothing
           }
