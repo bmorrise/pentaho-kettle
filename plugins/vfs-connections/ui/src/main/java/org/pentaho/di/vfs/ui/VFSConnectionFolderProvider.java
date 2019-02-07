@@ -22,14 +22,12 @@
 
 package org.pentaho.di.vfs.ui;
 
-import org.eclipse.swt.graphics.Image;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.tree.TreeNode;
 import org.pentaho.di.ui.spoon.tree.TreeFolderProvider;
 import org.pentaho.di.vfs.VFSConnectionManager;
-import org.pentaho.di.vfs.providers.OtherConnectionDetailsProvider;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 /**
@@ -42,8 +40,8 @@ public class VFSConnectionFolderProvider extends TreeFolderProvider {
   private VFSConnectionManager vfsConnectionManager;
 
   public VFSConnectionFolderProvider( MetastoreLocator metastoreLocator ) {
-    this.vfsConnectionManager = new VFSConnectionManager( metastoreLocator.getMetastore() );
-    vfsConnectionManager.addVFSConnectionProvider( "ftp", new OtherConnectionDetailsProvider() );
+    this.vfsConnectionManager = VFSConnectionManager.getInstance();
+    vfsConnectionManager.setMetastoreSupplier( metastoreLocator::getMetastore );
   }
 
   @Override
@@ -59,12 +57,5 @@ public class VFSConnectionFolderProvider extends TreeFolderProvider {
   @Override
   public String getTitle() {
     return STRING_VFS_CONNECTIONS;
-  }
-
-  @Override
-  public TreeNode createTreeNode( TreeNode parent, String text, Image image ) {
-    TreeNode treeNode = super.createTreeNode( parent, text, image );
-    treeNode.setIndex( 0 );
-    return treeNode;
   }
 }

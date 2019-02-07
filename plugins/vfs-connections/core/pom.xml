@@ -17,6 +17,7 @@
 
   <properties>
     <dependency.commons-vfs2.revision>2.2</dependency.commons-vfs2.revision>
+    <dependency.mockito.revision>1.10.19</dependency.mockito.revision>
   </properties>
 
   <dependencies>
@@ -39,6 +40,18 @@
       <artifactId>commons-vfs2</artifactId>
       <version>${dependency.commons-vfs2.revision}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-metastore-locator-api</artifactId>
+      <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${dependency.mockito.revision}</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

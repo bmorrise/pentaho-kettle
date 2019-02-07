@@ -40,9 +40,11 @@ define(
     function factory($rootScope, $state) {
       var transition = $state.current.name === "connecting" ? "fade" : "slideLeft";
       var transitions = {
-        "intro->connection-details": "slideRight"
+        "connection-details->intro": "slideRight",
+        "summary->connection-details": "slideRight"
       };
       $rootScope.$on('$stateChangeStart', function(evt, toState, toParams, fromState, fromParams) {
+        console.log(fromState.name + "->" + toState.name);
         var next = transitions[fromState.name + "->" + toState.name];
         if (next) {
           transition = next;

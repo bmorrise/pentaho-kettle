@@ -13,14 +13,35 @@ define([
     controller: finalController
   };
 
-  finalController.$inject = [];
+  finalController.$inject = ["$state", "$stateParams"];
 
-  function finalController() {
+  function finalController($state, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
+    vm.onClose = onClose;
+    vm.onCreateNew = onCreateNew;
 
     function onInit() {
+      vm.congratulationsLabel = "Congratulations!";
+      vm.readyCreate = "Your VFS has been created and is ready to use.";
+      vm.question = "What would you like to do?";
+      vm.createNewConnection = "Create new VFS connection";
+      vm.editConnection = "Edit this connection";
+      vm.closeLabel = "Close";
 
+      vm.data = $stateParams.data;
+    }
+
+    function onCreateNew() {
+      $state.go("intro");
+    }
+
+    function onEditConnection() {
+      $state.go("intro", {data: vm.data});
+    }
+
+    function onClose() {
+      close();
     }
   }
 

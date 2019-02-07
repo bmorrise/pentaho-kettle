@@ -27,6 +27,8 @@ import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.vfs.VFSConnectionManager;
+import org.pentaho.di.vfs.providers.other.OtherConnectionDetailsProvider;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import java.util.function.Supplier;
@@ -38,6 +40,7 @@ import java.util.function.Supplier;
 public class VFSConnectionLifecycleListener implements LifecycleListener {
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private Supplier<VFSConnectionManager> connectionManagerSupplier = VFSConnectionManager::getInstance;
   private MetastoreLocator metastoreLocator;
 
   public VFSConnectionLifecycleListener( MetastoreLocator metastoreLocator ) {
@@ -51,6 +54,7 @@ public class VFSConnectionLifecycleListener implements LifecycleListener {
       spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new VFSConnectionFolderProvider( metastoreLocator ) );
       spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new VFSConnectionFolderProvider( metastoreLocator ) );
     }
+    connectionManagerSupplier.get().addVFSConnectionProvider( "other", new OtherConnectionDetailsProvider() );
   }
 
   @Override

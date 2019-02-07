@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.platform.settings.ServerPort;
 import org.pentaho.platform.settings.ServerPortRegistry;
 
@@ -44,9 +45,19 @@ public class VFSConnectionDialog extends ThinDialog {
     super( shell, width, height );
   }
 
+
   public void open( String title ) {
+    open( title, null );
+  }
+
+  public void open( String title, String connectionName ) {
+
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
+    clientPath.append( "#/intro" );
+    if ( connectionName != null ) {
+      clientPath.append( "?connection=" ).append( connectionName );
+    }
     super.createDialog( title, getRepoURL( clientPath.toString() ),
       OPTIONS, LOGO );
     super.dialog.setMinimumSize( 545, 458 );

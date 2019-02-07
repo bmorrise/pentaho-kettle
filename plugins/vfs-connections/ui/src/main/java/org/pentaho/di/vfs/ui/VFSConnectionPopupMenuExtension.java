@@ -51,6 +51,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
   private Menu rootMenu;
   private Menu itemMenu;
   private VFSConnectionDelegate vfsConnectionDelegate;
+  private VFSConnectionTreeItem vfsConnectionTreeItem;
 
   public VFSConnectionPopupMenuExtension() {
     this.vfsConnectionDelegate = new VFSConnectionDelegate();
@@ -68,6 +69,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
     if ( selection == VFSConnectionDetails.class ) {
       popupMenu = createRootPopupMenu( selectionTree );
     } else if ( selection instanceof VFSConnectionTreeItem ) {
+      vfsConnectionTreeItem = (VFSConnectionTreeItem) selection;
       popupMenu = createItemPopupMenu( selectionTree );
     }
 
@@ -100,7 +102,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
       editMenuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.Edit" ) );
       editMenuItem.addSelectionListener( new SelectionAdapter() {
         @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-          vfsConnectionDelegate.openDialog();
+          vfsConnectionDelegate.openDialog( vfsConnectionTreeItem.getLabel() );
         }
       } );
 
@@ -108,7 +110,7 @@ public class VFSConnectionPopupMenuExtension implements ExtensionPointInterface 
       deleteMenuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.Delete" ) );
       deleteMenuItem.addSelectionListener( new SelectionAdapter() {
         @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-
+          vfsConnectionDelegate.delete( vfsConnectionTreeItem.getLabel() );
         }
       } );
     }

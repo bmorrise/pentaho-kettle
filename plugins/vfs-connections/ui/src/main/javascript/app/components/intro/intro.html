@@ -3,13 +3,11 @@
   <div class="middle_div margin_bottom_10">
     <div class="margin_bottom_15">
       <label for="connectionName" class="margin_bottom_5 block text_left">{{::vm.connectionName}}</label>
-      <input focus="300" id="connectionName" class="block" type="text" size="50" ng-keyup="vm.resetErrorMsg()"/>
+      <input focus="300" id="connectionName" class="block" type="text" size="50" ng-keyup="vm.resetErrorMsg()" ng-model="vm.data.name"/>
     </div>
     <div class="margin_bottom_15">
       <label for="connectionType" class="margin_bottom_5 block text_left">{{::vm.connectionType}}</label>
-      <select class="margin_bottom_5 block text_left">
-        <option>Google Cloud Storage</option>
-      </select>
+      <selectbox type="vm.type" options="vm.connectionTypes" on-select="vm.onSelect(value)"></selectbox>
     </div>
   </div>
   <div class="bottom">
@@ -18,7 +16,7 @@
     </div>
     <div>
       <help></help>
-      <button id="next" class="right margin_left_10 primary" type="button" ng-click="vm.next()">
+      <button id="next" class="right margin_left_10 primary" type="button" ng-click="vm.next()" ng-disabled="vm.canNext()">
       <span>
         {{::vm.nextLabel}}
       </span>

@@ -32,23 +32,38 @@ define([], function() {
     $stateProvider
       .state('intro', {
         url: "/intro",
-        template: "<intro></intro>"
+        template: "<intro></intro>",
+        params: {
+          data: null
+        }
       })
       .state('connection-details', {
         url: "/connection-details",
-        template: "<connection-details></connection-details>"
+        template: "<connection-details></connection-details>",
+        params: {
+          data: null
+        }
       })
       .state('summary', {
         url: "/summary",
-        template: "<summary></summary>"
+        template: "<summary></summary>",
+        params: {
+          data: null
+        }
       })
       .state('creating', {
         url: "/creating",
-        template: "<creating></creating>"
+        template: "<creating></creating>",
+        params: {
+          data: null
+        }
       })
       .state('final', {
         url: "/final",
-        template: "<final></final>"
+        template: "<final></final>",
+        params: {
+          data: null
+        }
       })
   }
   return config;

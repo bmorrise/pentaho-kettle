@@ -1,0 +1,24 @@
+.group_holder {
+  border: 1px solid #CBCBCB;
+  border-radius: 5px;
+  font-size: 14px;
+  padding: 10px;
+}
+
+.group {
+  clear: both;
+}
+
+.group .label {
+  float: left;
+}
+
+.group .value {
+  float: right;
+}
+
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
+}

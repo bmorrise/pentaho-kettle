@@ -13,15 +13,23 @@ define([
     controller: creatingController
   };
 
-  creatingController.$inject = [];
+  creatingController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
 
-  function creatingController() {
+  function creatingController($state, $timeout, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
+    vm.data = $stateParams.data;
 
     function onInit() {
       vm.almostDone = "Almost done";
       vm.message = "Creating your new VFS connection...";
+
+      vm.data.model.name = vm.data.name;
+      dataService.createConnection(vm.data.model).then(function() {
+        $timeout(function() {
+          $state.go("final", {data: vm.data});
+        }, 1000);
+      });
     }
   }
 

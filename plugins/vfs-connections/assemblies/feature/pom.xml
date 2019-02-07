@@ -23,12 +23,6 @@
   <dependencies>
     <dependency>
       <groupId>org.pentaho.di.plugins</groupId>
-      <artifactId>vfs-connections-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>vfs-connections-ui</artifactId>
       <version>${project.version}</version>
     </dependency>

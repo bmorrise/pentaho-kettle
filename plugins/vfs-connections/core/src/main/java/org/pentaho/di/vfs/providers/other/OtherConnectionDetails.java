@@ -1,8 +1,9 @@
-package org.pentaho.di.vfs.providers;
+package org.pentaho.di.vfs.providers.other;
 
+import org.pentaho.di.vfs.VFSConnectionDetails;
+import org.pentaho.di.vfs.annotation.FieldMetaType;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
-import org.pentaho.di.vfs.VFSConnectionDetails;
 
 /**
  * Created by bmorrise on 2/3/19.
@@ -16,15 +17,19 @@ public class OtherConnectionDetails implements VFSConnectionDetails {
   private String name;
 
   @MetaStoreAttribute
+  @FieldMetaType( label = "Hostname" )
   private String host;
 
   @MetaStoreAttribute
+  @FieldMetaType( label = "Port" )
   private String port;
 
   @MetaStoreAttribute
+  @FieldMetaType( label = "Username" )
   private String username;
 
   @MetaStoreAttribute
+  @FieldMetaType( label = "Password" )
   private String password;
 
   public String getHost() {

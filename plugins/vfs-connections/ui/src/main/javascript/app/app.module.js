@@ -34,9 +34,13 @@ define([
   "./components/summary/summary.component",
   "./components/creating/creating.component",
   "./components/final/final.component",
+  "./components/selectbox/selectbox.component",
+  "./directives/focus.directive",
+  "./service/helper.service",
+  "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function(angular, appConfig, appAnimation, introComponent, connectionDetailsComponent, summaryComponent, creatingComponent, finalComponent) {
+], function(angular, appConfig, appAnimation, introComponent, connectionDetailsComponent, summaryComponent, creatingComponent, finalComponent, selectboxComponent, focusDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -60,6 +64,10 @@ define([
       .component(summaryComponent.name, summaryComponent.options)
       .component(creatingComponent.name, creatingComponent.options)
       .component(finalComponent.name, finalComponent.options)
+      .component(selectboxComponent.name, selectboxComponent.options)
+      .directive(focusDirective.name, focusDirective.options)
+      .service(helperService.name, helperService.factory)
+      .service(dataService.name, dataService.factory)
       .animation(appAnimation.class, appAnimation.factory)
       .config(appConfig);
   }

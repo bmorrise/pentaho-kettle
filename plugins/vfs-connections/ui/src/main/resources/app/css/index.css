@@ -164,7 +164,7 @@ button:not(.defaultBtn):not(.detailsBtn) {
 }
 
 button.same_width {
-  width: 200px;
+  /*width: 200px;*/
 }
 
 button#connect {

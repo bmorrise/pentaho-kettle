@@ -13,20 +13,23 @@ define([
     controller: summaryController
   };
 
-  summaryController.$inject = ["$state"];
+  summaryController.$inject = ["$state", "$stateParams"];
 
-  function summaryController() {
+  function summaryController($state, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
     vm.next = next;
 
     function onInit() {
       vm.connectionSummary = "VFS connection summary";
+      vm.generalSettings = "General Settings";
+      vm.connectionDetails = "Connection details";
       vm.finishLabel = "Finish";
+      vm.data = $stateParams.data;
     }
 
     function next() {
-      $state.go("creating");
+      $state.go("creating", {data: vm.data});
     }
   }
 

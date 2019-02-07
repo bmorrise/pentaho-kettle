@@ -42,6 +42,7 @@
     <dojo.version>1.9.2</dojo.version>
     <dependency.javax.servlet-api.version>3.0.1</dependency.javax.servlet-api.version>
     <dependency.javax.ws.rs-api.version>2.0</dependency.javax.ws.rs-api.version>
+    <pax-web-spi.version>3.1.4</pax-web-spi.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -128,12 +129,12 @@
         <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
         <version>${swt.version}</version>
         <scope>provided</scope>
-        <exclusions>
-          <exclusion>
-            <artifactId>*</artifactId>
-            <groupId>*</groupId>
-          </exclusion>
-        </exclusions>
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>*</artifactId>-->
+            <!--<groupId>*</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
       </dependency>
       <dependency>
         <groupId>org.webjars.bower</groupId>
