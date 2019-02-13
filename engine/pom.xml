@@ -146,8 +146,6 @@
       <artifactId>classic-core</artifactId>
       <version>${pentaho-reporting.version}</version>
     </dependency>
-
-
     <!-- Third-party dependencies -->
     <dependency>
       <groupId>org.dom4j</groupId>

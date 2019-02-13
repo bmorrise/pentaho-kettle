@@ -1,0 +1,28 @@
+<div class="bottom">
+  <div class="margin_bottom_20">
+    <hr />
+  </div>
+  <div>
+    <help></help>
+    <button ng-if="vm.next" id="next" class="right margin_left_10 primary" type="button" ng-click="vm.onNext()" ng-disabled="!vm.canNext">
+      <span>
+        {{::vm.nextLabel}}
+      </span>
+    </button>
+    <button ng-if="vm.back" class="right secondary" type="button" ng-click="vm.onBack()">
+      <span>
+        {{::vm.backLabel}}
+      </span>
+    </button>
+    <button ng-if="vm.finish" class="right primary" type="button" ng-click="vm.onFinish()">
+      <span>
+        {{::vm.finishLabel}}
+      </span>
+    </button>
+    <button ng-if="vm.close" class="right primary" type="button" ng-click="vm.onClose()">
+      <span>
+        {{::vm.closeLabel}}
+      </span>
+    </button>
+  </div>
+</div>
