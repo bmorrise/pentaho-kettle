@@ -9,4 +9,3 @@ import org.pentaho.di.connections.ConnectionProvider;
 public interface VFSConnectionProvider<T extends VFSConnectionDetails> extends ConnectionProvider {
   FileSystemOptions getOpts( T vfsConnectionDetails );
 }
-

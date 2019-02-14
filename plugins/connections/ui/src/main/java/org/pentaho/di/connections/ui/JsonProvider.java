@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import org.pentaho.di.connections.api.ConnectionDetails;
-import org.pentaho.di.connections.core.ConnectionManager;
+import org.pentaho.di.connections.ConnectionDetails;
+import org.pentaho.di.connections.ConnectionManager;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;

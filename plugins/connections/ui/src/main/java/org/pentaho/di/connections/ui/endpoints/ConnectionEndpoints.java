@@ -22,11 +22,11 @@
 
 package org.pentaho.di.connections.ui.endpoints;
 
-import org.pentaho.di.connections.api.ConnectionDetails;
-import org.pentaho.di.connections.core.ConnectionManager;
 import org.pentaho.di.connections.ui.ConnectionFolderProvider;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.di.connections.ConnectionManager;
+import org.pentaho.di.connections.ConnectionDetails;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;

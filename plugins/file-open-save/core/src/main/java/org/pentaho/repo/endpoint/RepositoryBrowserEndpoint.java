@@ -22,8 +22,8 @@ import org.pentaho.di.core.exception.KettleTransException;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.repo.controller.RepositoryBrowserController;
-import org.pentaho.repo.model.RepositoryDirectory;
-import org.pentaho.repo.model.RepositoryTree;
+import org.pentaho.repo.model.repository.RepositoryDirectory;
+import org.pentaho.repo.model.repository.RepositoryTree;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;

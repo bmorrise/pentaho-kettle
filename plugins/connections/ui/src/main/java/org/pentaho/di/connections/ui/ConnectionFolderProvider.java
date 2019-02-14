@@ -23,7 +23,7 @@
 package org.pentaho.di.connections.ui;
 
 import org.pentaho.di.base.AbstractMeta;
-import org.pentaho.di.connections.core.ConnectionManager;
+import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.tree.TreeNode;

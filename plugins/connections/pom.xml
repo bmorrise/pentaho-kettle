@@ -16,8 +16,6 @@
   <name>Connections Plugin</name>
 
   <modules>
-    <module>api</module>
-    <module>core</module>
     <module>ui</module>
     <module>assemblies</module>
   </modules>

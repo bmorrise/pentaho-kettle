@@ -40,10 +40,10 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.platform.api.repository2.unified.RepositoryFileTree;
 import org.pentaho.platform.api.repository2.unified.RepositoryRequest;
-import org.pentaho.repo.model.RepositoryDirectory;
-import org.pentaho.repo.model.RepositoryFile;
-import org.pentaho.repo.model.RepositoryName;
-import org.pentaho.repo.model.RepositoryTree;
+import org.pentaho.repo.model.repository.RepositoryDirectory;
+import org.pentaho.repo.model.repository.RepositoryFile;
+import org.pentaho.repo.model.repository.RepositoryName;
+import org.pentaho.repo.model.repository.RepositoryTree;
 import org.pentaho.repo.util.Util;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ import java.util.function.Supplier;
 /**
  * Created by bmorrise on 5/12/17.
  */
-public class RepositoryBrowserController {
+public class RepositoryBrowserController implements BrowserController {
 
   public static final String PENTAHO_ENTERPRISE_REPOSITORY = "PentahoEnterpriseRepository";
   public static Repository repository;
@@ -551,9 +551,9 @@ public class RepositoryBrowserController {
     return repositoryDirectory;
   }
 
-  public List<org.pentaho.repo.model.RepositoryObject> search( String path, String filter ) {
+  public List<org.pentaho.repo.model.repository.RepositoryObject> search( String path, String filter ) {
     RepositoryDirectoryInterface repositoryDirectoryInterface = findDirectory( path );
-    List<org.pentaho.repo.model.RepositoryObject> repositoryObjects = new ArrayList<>();
+    List<org.pentaho.repo.model.repository.RepositoryObject> repositoryObjects = new ArrayList<>();
     List<RepositoryObjectInterface> repositoryObjects1 = ( (RepositoryExtended) getRepository() ).getChildren(
       repositoryDirectoryInterface.getObjectId().getId(), filter );
     for ( RepositoryObjectInterface repositoryObject : repositoryObjects1 ) {

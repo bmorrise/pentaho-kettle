@@ -139,8 +139,46 @@ define([
           vm.headerTitle = i18n.get("file-open-save-plugin.app.header.select.title");
         }
         if (!$state.is('selectFolder')) {
-          dt.getDirectoryTree($location.search().filter).then(_populateTree);
-          dt.getRecentFiles().then(_populateRecentFiles);
+          // dt.getDirectoryTree($location.search().filter).then(_populateTree);
+          // dt.getRecentFiles().then(_populateRecentFiles);
+          vm.tree = {
+            "includeRoot":true,
+            "children":[
+                {
+                  "name":"asdf",
+                  // "objectId":
+                  //   {
+                  //     "id":"faec90cc-e7ca-4b9d-b275-332fbc091f75"
+                  //   },
+                  "path":"/asdf",
+                  "parent":"/",
+                  // "hasChildren":true,
+                  // "extension":null,
+                  // "date":1521485828942,
+                  // "type":"folder",
+                  // "repository":null,
+                  // "hidden":false,
+                  // "children":[]
+                },
+              {
+                "name":"fadasdf",
+                // "objectId":
+                //     {
+                //       "id":"b79954af-8fae-475d-b353-e3bf0789eb21"
+                //     },
+                "path":"/asdf",
+                "parent":"/",
+                // "hasChildren":true,
+                // "extension":null,
+                // "date":1521485828908,
+                // "type":"folder",
+                // "repository":null,
+                // "hidden":false,
+                // "children":[]
+              }
+            ]
+          };
+          vm.loading = false;
         } else {
           dt.getDirectoryTree("false").then(_populateTree);
         }

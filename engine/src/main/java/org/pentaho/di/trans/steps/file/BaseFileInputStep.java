@@ -62,6 +62,7 @@ import java.util.Map;
  */
 public abstract class BaseFileInputStep<M extends BaseFileInputMeta<?, ?, ?>, D extends BaseFileInputStepData> extends
     BaseStep implements IBaseFileInputStepControl {
+  public static final String CONNECTION = "connection";
   private static Class<?> PKG = BaseFileInputStep.class; // for i18n purposes, needed by Translator2!!
 
   protected M meta;
@@ -94,6 +95,8 @@ public abstract class BaseFileInputStep<M extends BaseFileInputMeta<?, ?, ?>, D 
     if ( !super.init( smi, sdi ) ) {
       return false;
     }
+
+    setVariable( CONNECTION, meta.getConnection() );
 
     //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
     if ( getTransMeta().getNamedClusterEmbedManager() != null ) {

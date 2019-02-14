@@ -22,9 +22,9 @@
 
 package org.pentaho.di.connections.ui;
 
-import org.pentaho.di.connections.api.vfs.VFSLookupFilter;
-import org.pentaho.di.connections.core.ConnectionManager;
-import org.pentaho.di.connections.core.vfs.providers.other.OtherConnectionDetailsProvider;
+import org.pentaho.di.connections.vfs.VFSLookupFilter;
+import org.pentaho.di.connections.ConnectionManager;
+import org.pentaho.di.connections.vfs.providers.other.OtherConnectionDetailsProvider;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;

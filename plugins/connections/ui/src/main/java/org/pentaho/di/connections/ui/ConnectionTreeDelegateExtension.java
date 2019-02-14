@@ -31,7 +31,7 @@ import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.di.ui.spoon.delegates.SpoonTreeDelegateExtension;
-import org.pentaho.di.connections.api.vfs.VFSConnectionDetails;
+import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 
 import java.util.List;
 

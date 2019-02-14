@@ -23,7 +23,7 @@ public class VFSLookupFilter implements LookupFilter {
     if ( lookup != null ) {
       return lookup;
     }
-    return null;
+    return input;
   }
 
   public void addKeyLookup( String from, String to ) {

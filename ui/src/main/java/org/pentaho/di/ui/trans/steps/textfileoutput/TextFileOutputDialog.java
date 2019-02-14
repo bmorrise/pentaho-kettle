@@ -101,6 +101,10 @@ public class TextFileOutputDialog extends BaseStepDialog implements StepDialogIn
   private TextVar wFilename;
   private FormData fdlFilename, fdbFilename, fdFilename;
 
+  private Label wlConnection;
+  private ComboVar wcConnection;
+  private FormData fdlConnection, fdcConnection;
+
   private Label wlServletOutput;
   protected Button wServletOutput;
   private FormData fdlServletOutput, fdServletOutput;
@@ -298,13 +302,32 @@ public class TextFileOutputDialog extends BaseStepDialog implements StepDialogIn
     fileLayout.marginHeight = 3;
     wFileComp.setLayout( fileLayout );
 
+    // Connection line
+    wlConnection = new Label( wFileComp, SWT.RIGHT );
+    wlConnection.setText( "Connection" );
+    props.setLook( wlConnection );
+    fdlConnection = new FormData();
+    fdlConnection.left = new FormAttachment( 0, 0 );
+    fdlConnection.top = new FormAttachment( 0, margin );
+    fdlConnection.right = new FormAttachment( middle, -margin );
+    wlConnection.setLayoutData( fdlConnection );
+
+    wcConnection = new ComboVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wcConnection );
+    wcConnection.addModifyListener( lsMod );
+    fdcConnection = new FormData();
+    fdcConnection.left = new FormAttachment( middle, 0 );
+    fdcConnection.top = new FormAttachment( 0, margin );
+    fdcConnection.right = new FormAttachment( 100, -margin );
+    wcConnection.setLayoutData( fdcConnection );
+
     // Filename line
     wlFilename = new Label( wFileComp, SWT.RIGHT );
     wlFilename.setText( BaseMessages.getString( PKG, "TextFileOutputDialog.Filename.Label" ) );
     props.setLook( wlFilename );
     fdlFilename = new FormData();
     fdlFilename.left = new FormAttachment( 0, 0 );
-    fdlFilename.top = new FormAttachment( 0, margin );
+    fdlFilename.top = new FormAttachment( wcConnection, margin );
     fdlFilename.right = new FormAttachment( middle, -margin );
     wlFilename.setLayoutData( fdlFilename );
 
@@ -313,7 +336,7 @@ public class TextFileOutputDialog extends BaseStepDialog implements StepDialogIn
     wbFilename.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
     fdbFilename = new FormData();
     fdbFilename.right = new FormAttachment( 100, 0 );
-    fdbFilename.top = new FormAttachment( 0, 0 );
+    fdbFilename.top = new FormAttachment( wcConnection, 0 );
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -321,7 +344,7 @@ public class TextFileOutputDialog extends BaseStepDialog implements StepDialogIn
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
     fdFilename.left = new FormAttachment( middle, 0 );
-    fdFilename.top = new FormAttachment( 0, margin );
+    fdFilename.top = new FormAttachment( wcConnection, margin );
     fdFilename.right = new FormAttachment( wbFilename, -margin );
     wFilename.setLayoutData( fdFilename );
 

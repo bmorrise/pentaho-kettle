@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import org.pentaho.di.core.fileinput.FileInputList;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
@@ -58,6 +59,9 @@ public abstract class BaseFileInputMeta<A extends BaseFileInputAdditionalField, 
   /** The fields to import... */
   @InjectionDeep
   public F[] inputFields;
+
+  @Injection( name = "CONNECTION_NAME" )
+  public String connection;
 
   /**
    * @return the input fields.
@@ -150,5 +154,13 @@ public abstract class BaseFileInputMeta<A extends BaseFileInputAdditionalField, 
       }
     }
     return new String[]{};
+  }
+
+  public String getConnection() {
+    return connection;
+  }
+
+  public void setConnection( String connection ) {
+    this.connection = connection;
   }
 }

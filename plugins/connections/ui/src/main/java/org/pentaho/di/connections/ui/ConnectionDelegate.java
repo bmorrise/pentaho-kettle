@@ -1,6 +1,6 @@
 package org.pentaho.di.connections.ui;
 
-import org.pentaho.di.connections.core.ConnectionManager;
+import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.ui.spoon.Spoon;
 
 import java.util.function.Supplier;

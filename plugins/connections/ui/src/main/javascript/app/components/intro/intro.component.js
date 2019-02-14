@@ -53,6 +53,7 @@ define([
           vm.type = model.type;
           vm.data.name = model.name;
           vm.data.model = model;
+          vm.next = vm.data.model.type+"step1";
         });
       }
     }

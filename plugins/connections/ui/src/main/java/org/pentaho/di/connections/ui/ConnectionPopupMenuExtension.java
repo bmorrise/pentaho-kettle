@@ -38,7 +38,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
-import org.pentaho.di.connections.api.vfs.VFSConnectionDetails;
+import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 
 import java.util.function.Supplier;
 
