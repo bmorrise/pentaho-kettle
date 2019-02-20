@@ -65,6 +65,8 @@ import org.pentaho.di.core.compress.CompressionInputStream;
 import org.pentaho.di.core.compress.CompressionProvider;
 import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.extension.ExtensionPointHandler;
+import org.pentaho.di.core.extension.KettleExtensionPoint;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.gui.TextFileInputFieldInterface;
 import org.pentaho.di.core.logging.LogChannel;
@@ -75,6 +77,7 @@ import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.repository.RepositoryObject;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
@@ -87,6 +90,7 @@ import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
@@ -179,10 +183,6 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
   private Button wbaFilename; // Add or change
   private TextVar wFilename;
   private FormData fdlFilename, fdbFilename, fdbdFilename, fdbeFilename, fdbaFilename, fdFilename;
-
-  private Label wlConnection;
-  private ComboVar wcConnection;
-  private FormData fdlConnection, fdcConnection;
 
   private Label wlFilenameList;
   private TableView wFilenameList;
@@ -678,34 +678,19 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     // Listen to the Browse... button
     wbbFilename.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
-        VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
-        if ( wFilename.getText() != null ) {
-          try {
-            fileChooserDialog.initialFile =
-              KettleVFS.getFileObject( transMeta.environmentSubstitute( wFilename.getText() ) );
-          } catch ( KettleException ex ) {
-            fileChooserDialog.initialFile = null;
+        try {
+          FileDialogOperation fileDialogOperation =
+            new FileDialogOperation( FileDialogOperation.SELECT_FILE, FileDialogOperation.ORIGIN_OTHER );
+          ExtensionPointHandler.callExtensionPoint( log, KettleExtensionPoint.SpoonOpenSaveRepository.id,
+            fileDialogOperation );
+          if ( fileDialogOperation.getPath() != null ) {
+            wFilename.setText( fileDialogOperation.getPath() );
           }
-        }
-        FileObject
-          selectedFile =
-          fileChooserDialog
-            .open( shell, null, "file", new String[] { "*.txt", "*.csv", "*" },
-              new String[] { BaseMessages.getString( PKG, "System.FileType.TextFiles" ),
-                BaseMessages.getString( PKG, "System.FileType.CSVFiles" ),
-                BaseMessages.getString( PKG, "System.FileType.AllFiles" ) },
-              VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
-        if ( selectedFile != null ) {
-          String file = selectedFile.getName().getURI();
-          if ( !StringUtils.isBlank( file ) ) {
-            file = file.replace( "file://", "" ).replace( "/C:", "C:" );
+          if ( fileDialogOperation.getConnection() != null ) {
+            input.setConnection( fileDialogOperation.getConnection() );
           }
-          if ( !file.contains( System.getProperty( "file.separator" ) ) ) {
-            if ( !System.getProperty( "file.separator" ).equals( "/" ) && !Const.isWindows() ) {
-              file = file.replace( "/", System.getProperty( "file.separator" ) );
-            }
-          }
-          wFilename.setText( file );
+        } catch ( KettleException ke ) {
+          // Ignore
         }
       }
     } );
@@ -771,32 +756,13 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     fileLayout.marginHeight = 3;
     wFileComp.setLayout( fileLayout );
 
-    // Connection line
-    wlConnection = new Label( wFileComp, SWT.RIGHT );
-    wlConnection.setText( "Connection" );
-    props.setLook( wlConnection );
-    fdlConnection = new FormData();
-    fdlConnection.left = new FormAttachment( 0, 0 );
-    fdlConnection.top = new FormAttachment( 0, margin );
-    fdlConnection.right = new FormAttachment( middle, -margin );
-    wlConnection.setLayoutData( fdlConnection );
-
-    wcConnection = new ComboVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wcConnection );
-    wcConnection.addModifyListener( lsMod );
-    fdcConnection = new FormData();
-    fdcConnection.left = new FormAttachment( middle, 0 );
-    fdcConnection.top = new FormAttachment( 0, margin );
-    fdcConnection.right = new FormAttachment( 100, -margin );
-    wcConnection.setLayoutData( fdcConnection );
-
     // Filename line
     wlFilename = new Label( wFileComp, SWT.RIGHT );
     wlFilename.setText( BaseMessages.getString( PKG, "TextFileInputDialog.Filename.Label" ) );
     props.setLook( wlFilename );
     fdlFilename = new FormData();
     fdlFilename.left = new FormAttachment( 0, 0 );
-    fdlFilename.top = new FormAttachment( wcConnection, 0 );
+    fdlFilename.top = new FormAttachment( 0, 0 );
     fdlFilename.right = new FormAttachment( middle, -margin );
     wlFilename.setLayoutData( fdlFilename );
 
@@ -806,7 +772,7 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     wbbFilename.setToolTipText( BaseMessages.getString( PKG, "System.Tooltip.BrowseForFileOrDirAndAdd" ) );
     fdbFilename = new FormData();
     fdbFilename.right = new FormAttachment( 100, 0 );
-    fdbFilename.top = new FormAttachment( wcConnection, margin );
+    fdbFilename.top = new FormAttachment( 0, margin );
     wbbFilename.setLayoutData( fdbFilename );
 
     wbaFilename = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
@@ -815,7 +781,7 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     wbaFilename.setToolTipText( BaseMessages.getString( PKG, "TextFileInputDialog.FilenameAdd.Tooltip" ) );
     fdbaFilename = new FormData();
     fdbaFilename.right = new FormAttachment( wbbFilename, -margin );
-    fdbaFilename.top = new FormAttachment( wcConnection, margin );
+    fdbaFilename.top = new FormAttachment( 0, margin );
     wbaFilename.setLayoutData( fdbaFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -824,7 +790,7 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     fdFilename = new FormData();
     fdFilename.left = new FormAttachment( middle, 0 );
     fdFilename.right = new FormAttachment( wbaFilename, -margin );
-    fdFilename.top = new FormAttachment( wcConnection, margin );
+    fdFilename.top = new FormAttachment( 0, margin );
     wFilename.setLayoutData( fdFilename );
 
     wlFilemask = new Label( wFileComp, SWT.RIGHT );
@@ -2417,11 +2383,6 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
       wSizeFieldName.setText( meta.additionalOutputFields.sizeField );
     }
 
-    wcConnection.setText( meta.getConnection() != null ? meta.getConnection() : "" );
-
-    List<String> connections = ConnectionManager.getInstance().getNamesByType( VFSConnectionProvider.class );
-    wcConnection.setItems( connections.toArray( new String[ connections.size() ] ) );
-
     setFlags();
 
     wStepname.selectAll();
@@ -2586,7 +2547,6 @@ public class TextFileInputDialog extends BaseStepDialog implements StepDialogInt
     meta.content.noEmptyLines = wNoempty.getSelection();
     meta.content.encoding = wEncoding.getText();
     meta.content.length = wLength.getText();
-    meta.connection = wcConnection.getText();
 
     int nrfiles = wFilenameList.getItemCount();
     int nrfields = wFields.nrNonEmpty();

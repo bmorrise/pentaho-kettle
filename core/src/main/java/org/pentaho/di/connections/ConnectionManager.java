@@ -31,6 +31,10 @@ public class ConnectionManager {
     return instance;
   }
 
+  private <T extends ConnectionDetails> MetaStoreFactory<T> getMetaStoreFactory( Class<T> clazz ) {
+    return new MetaStoreFactory<>( clazz, metaStoreSupplier.get(), NAMESPACE );
+  }
+
   public void setMetastoreSupplier( Supplier<IMetaStore> metaStoreSupplier ) {
     this.metaStoreSupplier = metaStoreSupplier;
   }
@@ -95,16 +99,22 @@ public class ConnectionManager {
     }
   }
 
+  public List<ConnectionProvider> getProviders() {
+    return Collections.list( this.connectionProviders.elements() );
+  }
+
+  public List<ConnectionProvider> getProvidersByType( Class<? extends ConnectionProvider> clazz ) {
+    return Collections.list( connectionProviders.elements() ).stream().filter(
+      connectionProvider -> clazz.isAssignableFrom( connectionProvider.getClass() )
+    ).collect( Collectors.toList() );
+  }
+
   private List<String> getNames( ConnectionProvider provider ) {
     try {
       return getMetaStoreFactory( provider.getClassType() ).getElementNames();
     } catch ( MetaStoreException mse ) {
       return Collections.emptyList();
     }
-  }
-
-  private <T extends ConnectionDetails> MetaStoreFactory<T> getMetaStoreFactory( Class<T> clazz ) {
-    return new MetaStoreFactory<>( clazz, metaStoreSupplier.get(), NAMESPACE );
   }
 
   public List<String> getNames() {
@@ -148,6 +158,15 @@ public class ConnectionManager {
       return provider.getClassType().newInstance();
     } catch ( InstantiationException | IllegalAccessException e ) {
       return null;
+    }
+  }
+
+  public List<? extends ConnectionDetails> getConnectionDetailsByScheme( String scheme ) {
+    ConnectionProvider provider = connectionProviders.get( scheme );
+    try {
+      return getMetaStoreFactory( provider.getClassType() ).getElements();
+    } catch ( MetaStoreException mse ) {
+      return Collections.emptyList();
     }
   }
 

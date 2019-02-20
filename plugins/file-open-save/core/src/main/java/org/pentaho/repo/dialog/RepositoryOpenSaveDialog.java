@@ -53,6 +53,7 @@ public class RepositoryOpenSaveDialog extends ThinDialog {
   private String objectName;
   private String objectDirectory;
   private String objectType;
+  private String connectionName;
   private Repository repository;
 
   public RepositoryOpenSaveDialog( Shell shell, int width, int height ) {
@@ -102,6 +103,7 @@ public class RepositoryOpenSaveDialog extends ThinDialog {
         objectName = (String) arguments[ 1 ];
         objectDirectory = (String) arguments[ 2 ];
         objectType = (String) arguments[ 3 ];
+        connectionName = (String) arguments[ 4 ];
 
         browser.dispose();
         dialog.close();
@@ -186,5 +188,13 @@ public class RepositoryOpenSaveDialog extends ThinDialog {
 
   public void setObjectType( String objectType ) {
     this.objectType = objectType;
+  }
+
+  public String getConnectionName() {
+    return connectionName;
+  }
+
+  public void setConnectionName( String connectionName ) {
+    this.connectionName = connectionName;
   }
 }

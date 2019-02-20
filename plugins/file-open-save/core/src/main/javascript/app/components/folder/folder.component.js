@@ -78,23 +78,24 @@ define([
      */
     function onChanges(changes) {
       if (changes.selectedFolder) {
-        var selectedFolder = changes.selectedFolder.currentValue;
-        if (selectedFolder && selectedFolder.path) {
-          if (selectedFolder.path !== "Recents") {
-            if (vm.autoExpand) {
-              vm.autoExpand = false;
-              _openFolderTree(selectedFolder.path);
-            }
-            _selectFolderByPath(selectedFolder.path);
-          }
-        }
+        // var selectedFolder = changes.selectedFolder.currentValue;
+        // if (selectedFolder && selectedFolder.path) {
+        //   if (selectedFolder.path !== "Recents") {
+        //     if (vm.autoExpand) {
+        //       vm.autoExpand = false;
+        //       _openFolderTree(selectedFolder.path);
+        //     }
+        //     _selectFolderByPath(selectedFolder.path);
+        //   }
+        // }
         _setWidth();
       }
     }
 
     function getTree() {
       if (vm.tree) {
-        return vm.tree.includeRoot ? vm.tree.children : vm.tree.children[0].children;
+        //return vm.tree.includeRoot ? vm.tree.children : vm.tree.children[0].children;
+        return vm.tree;
       }
       return [];
     }
@@ -106,23 +107,25 @@ define([
      * @param {Object} folder - folder object
      */
     function openFolder(folder, callback) {
-      _setFolder(folder);
-      if (!folder.subfoldersLoaded) {
-        folder.loading = true;
-        dt.getFolders(folder.path).then(function(response) {
-          folder.subfoldersLoaded = true;
-          var loadedFolder = response.data;
-          folder.children = loadedFolder.children;
-          folder.loading = false;
-          if (callback) {
-            callback();
-          } else {
-            _setWidth();
-          }
-        });
-      } else {
-        _setWidth();
-      }
+      folder.open = !folder.open;
+      vm.onOpen({openFolder: folder});
+      // _setFolder(folder);
+      // if (!folder.subfoldersLoaded) {
+      //   // folder.loading = true;
+      //   // dt.getFolders(folder.path).then(function(response) {
+      //   //   folder.subfoldersLoaded = true;
+      //   //   var loadedFolder = response.data;
+      //   //   folder.children = loadedFolder.children;
+      //   //   folder.loading = false;
+      //   //   if (callback) {
+      //   //     callback();
+      //   //   } else {
+      //   //     _setWidth();
+      //   //   }
+      //   // });
+      // } else {
+      //   _setWidth();
+      // }
     }
 
     function _setFolder(folder) {
@@ -139,8 +142,8 @@ define([
      * @param {Object} folder - folder object
      */
     function selectFolder(folder) {
-      vm.showRecents = folder === null;
-      vm.selectedFolder = folder;
+      // vm.showRecents = folder === null;
+      // vm.selectedFolder = folder;
       vm.onSelect({selectedFolder: folder});
     }
 

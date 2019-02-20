@@ -61,15 +61,15 @@ public class RepositoryOpenSaveExtensionPoint implements ExtensionPointInterface
     PropsUI propsUI = propsUISupplier.get();
 
     String startingDir = null;
-    if ( fileDialogOperation.getRepository() == null ) {
-      String username = getRepository().getUserInfo() != null ? getRepository().getUserInfo().getLogin() : "";
-      String repoAndUser = getRepository().getName() + ":" + username;
-      List<LastUsedFile> lastUsedFileList =
-        propsUI.getLastUsedRepoFiles().getOrDefault( repoAndUser, Collections.emptyList() );
-      startingDir = getStartingDir( fileDialogOperation, lastUsedFileList );
-    } else {
-      startingDir = fileDialogOperation.getStartDir();
-    }
+//    if ( fileDialogOperation.getRepository() == null ) {
+//      String username = getRepository().getUserInfo() != null ? getRepository().getUserInfo().getLogin() : "";
+//      String repoAndUser = getRepository().getName() + ":" + username;
+//      List<LastUsedFile> lastUsedFileList =
+//        propsUI.getLastUsedRepoFiles().getOrDefault( repoAndUser, Collections.emptyList() );
+//      startingDir = getStartingDir( fileDialogOperation, lastUsedFileList );
+//    } else {
+//      startingDir = fileDialogOperation.getStartDir();
+//    }
 
     RepositoryOpenSaveDialog repositoryOpenSaveDialog =
       new RepositoryOpenSaveDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
@@ -77,7 +77,10 @@ public class RepositoryOpenSaveExtensionPoint implements ExtensionPointInterface
       fileDialogOperation.getTitle(), fileDialogOperation.getFilter(), fileDialogOperation.getOrigin(),
       fileDialogOperation.getFilename(), fileDialogOperation.getFileType() );
 
-    if ( !Utils.isEmpty( repositoryOpenSaveDialog.getObjectName() ) ) {
+    if ( fileDialogOperation.getCommand().equals( FileDialogOperation.SELECT_FILE ) ) {
+      fileDialogOperation.setPath( repositoryOpenSaveDialog.getObjectDirectory() );
+      fileDialogOperation.setConnection( repositoryOpenSaveDialog.getConnectionName() );
+    } else if ( !Utils.isEmpty( repositoryOpenSaveDialog.getObjectName() ) ) {
       RepositoryObject repositoryObject = new RepositoryObject();
       repositoryObject.setObjectId( repositoryOpenSaveDialog::getObjectId );
       repositoryObject.setName( repositoryOpenSaveDialog.getObjectName() );

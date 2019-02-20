@@ -1,8 +1,8 @@
 package org.pentaho.repo.controller;
 
 import org.pentaho.di.connections.ConnectionManager;
-import org.pentaho.repo.model.Tree;
-import org.pentaho.repo.model.vfs.VFSTree;
+import org.pentaho.repo.provider.Tree;
+import org.pentaho.repo.provider.vfs.model.VFSTree;
 
 import java.util.function.Supplier;
 
@@ -14,7 +14,6 @@ public class VFSBrowserController implements BrowserController {
   private Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
   @Override public Tree loadDirectoryTree() {
-    VFSTree vfsTree = new VFSTree();
-    return vfsTree;
+    return null;
   }
 }

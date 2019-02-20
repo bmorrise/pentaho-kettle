@@ -19,11 +19,11 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleJobException;
 import org.pentaho.di.core.exception.KettleObjectExistsException;
 import org.pentaho.di.core.exception.KettleTransException;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.repository.ObjectId;
+import org.pentaho.repo.controller.CombinedBrowserController;
 import org.pentaho.repo.controller.RepositoryBrowserController;
-import org.pentaho.repo.model.repository.RepositoryDirectory;
-import org.pentaho.repo.model.repository.RepositoryTree;
+import org.pentaho.repo.provider.Tree;
+import org.pentaho.repo.provider.repository.model.RepositoryDirectory;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,9 +31,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by bmorrise on 5/12/17.
@@ -41,28 +43,28 @@ import java.util.Collections;
 public class RepositoryBrowserEndpoint {
 
   private RepositoryBrowserController repositoryBrowserController;
+  private CombinedBrowserController combinedBrowserController;
 
-  public RepositoryBrowserEndpoint( RepositoryBrowserController repositoryBrowserController ) {
+  public RepositoryBrowserEndpoint( RepositoryBrowserController repositoryBrowserController,
+                                    CombinedBrowserController combinedBrowserController ) {
     this.repositoryBrowserController = repositoryBrowserController;
+    this.combinedBrowserController = combinedBrowserController;
   }
 
   @GET
   @Path( "/loadDirectoryTree{filter : (/filter)?}" )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response loadDirectoryTree( @PathParam( "filter" ) String filter ) {
-    RepositoryTree repositoryTree;
-    if ( filter.equals( "false" ) ) {
-      repositoryTree = repositoryBrowserController.loadDirectoryTree();
-    } else {
-      repositoryTree = Utils.isEmpty( filter ) ? repositoryBrowserController.loadDirectoryTree()
-        : repositoryBrowserController.loadDirectoryTree();
-    }
+    List<Tree> trees = combinedBrowserController.load();
+    return Response.ok( trees ).build();
+  }
 
-    if ( repositoryTree != null ) {
-      return Response.ok( repositoryTree ).build();
-    }
-
-    return Response.noContent().build();
+  @GET
+  @Path( "/getFiles" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response loadDirectoryTree( @QueryParam( "type" ) String type, @QueryParam( "connection" ) String connection,
+                                     @QueryParam( "path" ) String path ) {
+    return Response.ok( combinedBrowserController.getFiles( type, connection, path ) ).build();
   }
 
   @GET

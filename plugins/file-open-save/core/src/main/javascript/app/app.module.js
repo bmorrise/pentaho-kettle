@@ -41,12 +41,18 @@ define([
   "./shared/directives/focus.directive",
   "./shared/directives/scrollToFolder.directive",
   "./components/breadcrumb/breadcrumb.directive",
+  "./services/helper.service",
   "./services/data.service",
+  "./services/repository.service",
+  "./services/vfs.service",
+  "./services/search.service",
+  "./services/file.service",
   "./shared/directives/resize/resize.module",
   "angular-ui-router"
-], function(angular, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
-            loadingComponent, breadcrumbComponent, filesComponent, searchComponent, editDirective, keyDirective,
-            focusDirective, scrollToFolderDirective, breadcrumbDirective, dataService, resizeModule) {
+], function (angular, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
+             loadingComponent, breadcrumbComponent, filesComponent, searchComponent, editDirective, keyDirective,
+             focusDirective, scrollToFolderDirective, breadcrumbDirective, helperService,
+             dataService, repositoryService, vfsService, searchService, fileService, resizeModule) {
   "use strict";
 
   var module = {
@@ -65,21 +71,26 @@ define([
    */
   function activate() {
     angular.module(module.name, [resizeModule.name, "ui.router"])
-      .component(loadingComponent.name, loadingComponent.options)
-      .component(appComponent.name, appComponent.options)
-      .component(cardComponent.name, cardComponent.options)
-      .component(folderComponent.name, folderComponent.options)
-      .component(errorComponent.name, errorComponent.options)
-      .component(breadcrumbComponent.name, breadcrumbComponent.options)
-      .component(filesComponent.name, filesComponent.options)
-      .component(searchComponent.name, searchComponent.options)
-      .directive(editDirective.name, editDirective.options)
-      .directive(keyDirective.name, keyDirective.options)
-      .directive(focusDirective.name, focusDirective.options)
-      .directive(breadcrumbDirective.name, breadcrumbDirective.options)
-      .directive(scrollToFolderDirective.name, scrollToFolderDirective.options)
-      .service(dataService.name, dataService.factory)
-      .config(appConfig);
+        .component(loadingComponent.name, loadingComponent.options)
+        .component(appComponent.name, appComponent.options)
+        .component(cardComponent.name, cardComponent.options)
+        .component(folderComponent.name, folderComponent.options)
+        .component(errorComponent.name, errorComponent.options)
+        .component(breadcrumbComponent.name, breadcrumbComponent.options)
+        .component(filesComponent.name, filesComponent.options)
+        .component(searchComponent.name, searchComponent.options)
+        .directive(editDirective.name, editDirective.options)
+        .directive(keyDirective.name, keyDirective.options)
+        .directive(focusDirective.name, focusDirective.options)
+        .directive(breadcrumbDirective.name, breadcrumbDirective.options)
+        .directive(scrollToFolderDirective.name, scrollToFolderDirective.options)
+        .service(helperService.name, helperService.factory)
+        .service(dataService.name, dataService.factory)
+        .service(repositoryService.name, repositoryService.factory)
+        .service(vfsService.name, vfsService.factory)
+        .service(fileService.name, fileService.factory)
+        .service(searchService.name, searchService.factory)
+        .config(appConfig);
   }
 
   /**
@@ -88,7 +99,7 @@ define([
    * @param {DOMElement} element - The DOM element
    */
   function bootstrap(element) {
-    angular.element(element).ready(function() {
+    angular.element(element).ready(function () {
       angular.bootstrap(element, [module.name], {
         strictDi: true
       });

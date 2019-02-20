@@ -24,6 +24,7 @@ import org.pentaho.di.repository.RepositoryObjectInterface;
 public class FileDialogOperation {
 
   public static String SELECT_FOLDER = "selectFolder";
+  public static String SELECT_FILE = "selectFile";
   public static String OPEN = "open";
   public static String SAVE = "save";
   public static String ORIGIN_SPOON = "spoon";
@@ -40,6 +41,8 @@ public class FileDialogOperation {
   private String title;
   private String filename;
   private String fileType;
+  private String path;
+  private String connection;
 
   public FileDialogOperation( String command ) {
     this.command = command;
@@ -120,5 +123,21 @@ public class FileDialogOperation {
 
   public void setFileType( String fileType ) {
     this.fileType = fileType;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath( String path ) {
+    this.path = path;
+  }
+
+  public String getConnection() {
+    return connection;
+  }
+
+  public void setConnection( String connection ) {
+    this.connection = connection;
   }
 }

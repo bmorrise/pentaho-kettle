@@ -40,10 +40,10 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.platform.api.repository2.unified.RepositoryFileTree;
 import org.pentaho.platform.api.repository2.unified.RepositoryRequest;
-import org.pentaho.repo.model.repository.RepositoryDirectory;
-import org.pentaho.repo.model.repository.RepositoryFile;
-import org.pentaho.repo.model.repository.RepositoryName;
-import org.pentaho.repo.model.repository.RepositoryTree;
+import org.pentaho.repo.provider.repository.model.RepositoryDirectory;
+import org.pentaho.repo.provider.repository.model.RepositoryFile;
+import org.pentaho.repo.provider.repository.model.RepositoryName;
+import org.pentaho.repo.provider.repository.model.RepositoryTree;
 import org.pentaho.repo.util.Util;
 
 import java.util.ArrayList;
@@ -408,13 +408,18 @@ public class RepositoryBrowserController implements BrowserController {
         } else {
           rootDirectory = getRepository().loadRepositoryDirectoryTree();
         }
-        RepositoryTree repositoryTree = new RepositoryTree();
+        RepositoryTree repositoryTree = new RepositoryTree( null );
         RepositoryDirectory repositoryDirectory = RepositoryDirectory.build( null, rootDirectory );
         populateFolders( repositoryDirectory, rootDirectory );
         boolean isPentahoRepository =
           getRepository().getRepositoryMeta().getId().equals( PENTAHO_ENTERPRISE_REPOSITORY );
-        repositoryTree.setIncludeRoot( !isPentahoRepository );
-        repositoryTree.addChild( repositoryDirectory );
+        if ( isPentahoRepository ) {
+          for ( org.pentaho.repo.provider.repository.model.RepositoryObject child : repositoryDirectory.getChildren() ) {
+            repositoryTree.addChild( (RepositoryDirectory) child );
+          }
+        } else {
+          repositoryTree.addChild( repositoryDirectory );
+        }
         return repositoryTree;
       } catch ( Exception e ) {
         return null;
@@ -551,9 +556,9 @@ public class RepositoryBrowserController implements BrowserController {
     return repositoryDirectory;
   }
 
-  public List<org.pentaho.repo.model.repository.RepositoryObject> search( String path, String filter ) {
+  public List<org.pentaho.repo.provider.repository.model.RepositoryObject> search( String path, String filter ) {
     RepositoryDirectoryInterface repositoryDirectoryInterface = findDirectory( path );
-    List<org.pentaho.repo.model.repository.RepositoryObject> repositoryObjects = new ArrayList<>();
+    List<org.pentaho.repo.provider.repository.model.RepositoryObject> repositoryObjects = new ArrayList<>();
     List<RepositoryObjectInterface> repositoryObjects1 = ( (RepositoryExtended) getRepository() ).getChildren(
       repositoryDirectoryInterface.getObjectId().getId(), filter );
     for ( RepositoryObjectInterface repositoryObject : repositoryObjects1 ) {

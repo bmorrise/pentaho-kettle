@@ -1,9 +1,11 @@
 package org.pentaho.repo.controller;
 
-import org.pentaho.repo.model.Tree;
+import org.pentaho.repo.provider.File;
+import org.pentaho.repo.provider.FileProvider;
+import org.pentaho.repo.provider.Tree;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -11,20 +13,33 @@ import java.util.List;
  */
 public class CombinedBrowserController {
 
-  List<BrowserController> browserControllers = new ArrayList<>();
+  private List<FileProvider> fileProviders = new ArrayList<>();
 
-  public CombinedBrowserController() {
-    this.browserControllers = Arrays.asList(
-      new RepositoryBrowserController(),
-      new VFSBrowserController()
-    );
+  public CombinedBrowserController( List<FileProvider> fileProviders ) {
+    this.fileProviders = fileProviders;
+  }
+
+  public FileProvider getFileProvider( String type ) {
+    return fileProviders.stream().filter( fileProvider1 -> fileProvider1.getType().equalsIgnoreCase( type ) )
+      .findFirst()
+      .orElse( null );
   }
 
   public List<Tree> load() {
     List<Tree> trees = new ArrayList<>();
-    for ( BrowserController browserController : browserControllers ) {
-      trees.add( browserController.loadDirectoryTree() );
+    for ( FileProvider fileProvider : fileProviders ) {
+      if ( fileProvider.isAvailable() ) {
+        trees.add( fileProvider.getTree() );
+      }
     }
     return trees;
+  }
+
+  public List<? extends File> getFiles( String type, String connection, String path ) {
+    FileProvider fileProvider = getFileProvider( type );
+    if ( fileProvider != null && fileProvider.isAvailable() ) {
+      return fileProvider.getFiles( connection, path );
+    }
+    return Collections.emptyList();
   }
 }

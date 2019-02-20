@@ -34,8 +34,6 @@ define([
         "username": vm.username,
         "password": vm.password
       }
-
-      console.log(vm.data);
     }
 
     function canNext() {

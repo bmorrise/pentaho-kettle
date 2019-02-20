@@ -117,6 +117,18 @@ folder .folder.recents .folderImage {
   background: url("../../img/recents.svg") no-repeat left center;
 }
 
+folder .folder.local .folderImage {
+  background: url("../../img/slave.svg") no-repeat left center;
+}
+
+folder .folder.repository .folderImage {
+  background: url("../../img/CNC.svg") no-repeat left center;
+}
+
+folder .folder.environments .folderImage {
+  background: url("../../img/environments.svg") no-repeat left center;
+}
+
 folder .folder.home .folderName,
 folder .folder.public .folderName {
   text-transform: capitalize;

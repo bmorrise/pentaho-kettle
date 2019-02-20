@@ -79,6 +79,7 @@ define([
     vm.sortFiles = sortFiles;
     vm.compareFiles = compareFiles;
     vm.onStart = onStart;
+    vm.getExtension = getExtension;
 
     /**
      * The $onInit hook of components lifecycle which is called on each controller
@@ -106,6 +107,17 @@ define([
           _setSort(0, false, "name");
         }, 200);
       }
+    }
+
+    function getExtension(file) {
+      if (file.extension) {
+        return file.extension.substr(1, file.extension.length);
+      }
+      if (file.type === "folder") {
+        return "folder";
+      }
+      var index = file.name.lastIndexOf(".");
+      return file.name.substr(index + 1, file.name.length);
     }
 
     /**
