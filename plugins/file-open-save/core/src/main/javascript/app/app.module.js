@@ -27,6 +27,7 @@
  **/
 define([
   "angular",
+  "pentaho/module/instancesOf!IPenFileService",
   "./app.config",
   "./app.component",
   "./components/card/card.component",
@@ -40,13 +41,30 @@ define([
   "./shared/directives/key.directive",
   "./shared/directives/focus.directive",
   "./shared/directives/scrollToFolder.directive",
+  "./shared/directives/rightClick.directive",
+  "./shared/directives/context.directive",
+  "./shared/directives/drag.directive",
+  "./shared/directives/drop.directive",
   "./components/breadcrumb/breadcrumb.directive",
+  "./services/helper.service",
   "./services/data.service",
+  "./services/repository.service",
+  "./services/vfs.service",
+  "./services/local.service",
+  "./services/search.service",
+  "./services/file.service",
+  "./services/folder.service",
   "./shared/directives/resize/resize.module",
+  "./services/services.service",
+  "./services/clipboard.service",
+  "./shared/directives/modal.directive",
+  "./services/modal.service",
   "angular-ui-router"
-], function(angular, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
-            loadingComponent, breadcrumbComponent, filesComponent, searchComponent, editDirective, keyDirective,
-            focusDirective, scrollToFolderDirective, breadcrumbDirective, dataService, resizeModule) {
+], function (angular, fileServices, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
+             loadingComponent, breadcrumbComponent, filesComponent, searchComponent, editDirective, keyDirective,
+             focusDirective, scrollToFolderDirective, rightClickDirective, contextDirective, dragDirective, dropDirective,
+             breadcrumbDirective, helperService, dataService, repositoryService, vfsService, localService,
+             searchService, fileService, folderService, resizeModule, servicesService, clipboardService, modalDirective, modalService) {
   "use strict";
 
   var module = {
@@ -64,22 +82,38 @@ define([
    * @private
    */
   function activate() {
-    angular.module(module.name, [resizeModule.name, "ui.router"])
-      .component(loadingComponent.name, loadingComponent.options)
-      .component(appComponent.name, appComponent.options)
-      .component(cardComponent.name, cardComponent.options)
-      .component(folderComponent.name, folderComponent.options)
-      .component(errorComponent.name, errorComponent.options)
-      .component(breadcrumbComponent.name, breadcrumbComponent.options)
-      .component(filesComponent.name, filesComponent.options)
-      .component(searchComponent.name, searchComponent.options)
-      .directive(editDirective.name, editDirective.options)
-      .directive(keyDirective.name, keyDirective.options)
-      .directive(focusDirective.name, focusDirective.options)
-      .directive(breadcrumbDirective.name, breadcrumbDirective.options)
-      .directive(scrollToFolderDirective.name, scrollToFolderDirective.options)
-      .service(dataService.name, dataService.factory)
-      .config(appConfig);
+    var a = angular.module(module.name, [resizeModule.name, "ui.router"])
+        .component(loadingComponent.name, loadingComponent.options)
+        .component(appComponent.name, appComponent.options)
+        .component(cardComponent.name, cardComponent.options)
+        .component(folderComponent.name, folderComponent.options)
+        .component(errorComponent.name, errorComponent.options)
+        .component(breadcrumbComponent.name, breadcrumbComponent.options)
+        .component(filesComponent.name, filesComponent.options)
+        .component(searchComponent.name, searchComponent.options)
+        .directive(editDirective.name, editDirective.options)
+        .directive(keyDirective.name, keyDirective.options)
+        .directive(focusDirective.name, focusDirective.options)
+        .directive(breadcrumbDirective.name, breadcrumbDirective.options)
+        .directive(scrollToFolderDirective.name, scrollToFolderDirective.options)
+        .directive(rightClickDirective.name, rightClickDirective.options)
+        .directive(contextDirective.name, contextDirective.options)
+        .directive(dragDirective.name, dragDirective.options)
+        .directive(dropDirective.name, dropDirective.options)
+        .directive(modalDirective.name, modalDirective.options)
+        .service(helperService.name, helperService.factory)
+        .service(dataService.name, dataService.factory)
+        .service(fileService.name, fileService.factory)
+        .service(folderService.name, folderService.factory)
+        .service(searchService.name, searchService.factory)
+        .service(servicesService.name, servicesService.factory)
+        .service(clipboardService.name, clipboardService.factory)
+        .service(modalService.name, modalService.factory)
+        .config(appConfig);
+
+    fileServices.map(function(item) {
+      a.service(item.name, item.factory);
+    });
   }
 
   /**
@@ -88,7 +122,7 @@ define([
    * @param {DOMElement} element - The DOM element
    */
   function bootstrap(element) {
-    angular.element(element).ready(function() {
+    angular.element(element).ready(function () {
       angular.bootstrap(element, [module.name], {
         strictDi: true
       });

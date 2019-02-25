@@ -49,9 +49,9 @@ public interface MetastoreLocatorOsgi {
   IMetaStore getMetastore( String providerKey );
 
   /**
-   * Registers a metastore provider that returns the received metastore with the current thread.
+   * Registers a metastore providers that returns the received metastore with the current thread.
    * {@link #getMetastore()}
-   * will used this metastore if the repository and local metastore provider cannot be found.
+   * will used this metastore if the repository and local metastore providers cannot be found.
    *
    * @param metastore
    * @return
@@ -59,14 +59,14 @@ public interface MetastoreLocatorOsgi {
   String setEmbeddedMetastore( IMetaStore metastore );
 
   /**
-   * Dispose a metastore provider associated with the providerKey
+   * Dispose a metastore providers associated with the providerKey
    *
-   * @param providerKey The key to the metastore provider.
+   * @param providerKey The key to the metastore providers.
    */
   public void disposeMetastoreProvider( String providerKey );
 
   /**
-   * Unconditionally returns the metastore stored with the given provider key, or null if it does not exist.
+   * Unconditionally returns the metastore stored with the given providers key, or null if it does not exist.
    *
    * @param providerKey
    * @return

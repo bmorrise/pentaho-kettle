@@ -17,7 +17,7 @@
 /**
  * Defines the config for the file open save dialog
  */
-define([], function() {
+define([], function () {
   'use strict';
 
   config.$inject = ['$stateProvider'];
@@ -41,7 +41,12 @@ define([], function() {
         .state('selectFolder', {
           url: "/selectFolder",
           template: "<fileOpenSaveApp></fileOpenSaveApp>"
+        })
+        .state('selectFile', {
+          url: "/selectFile",
+          template: "<fileOpenSaveApp></fileOpenSaveApp>"
         });
   }
+
   return config;
 });

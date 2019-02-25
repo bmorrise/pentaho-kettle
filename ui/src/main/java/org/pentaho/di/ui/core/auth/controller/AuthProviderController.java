@@ -126,9 +126,9 @@ public class AuthProviderController extends AbstractXulEventHandler {
     if ( provider == null ) {
       provider = new NoAuthAuthProvider( bf );
     }
-    // Don't use this provider... it is the one that is created to populate
+    // Don't use this providers... it is the one that is created to populate
     // the combobox. Only use it to select the proper overlay, then
-    // bind the provider associated with the NamedObject selected
+    // bind the providers associated with the NamedObject selected
     // in the main authProvider list.
 
     if ( this.activeProvider != null ) {
@@ -140,8 +140,8 @@ public class AuthProviderController extends AbstractXulEventHandler {
     if ( model.getSelectedItem() != null ) {
       AuthProvider current = (AuthProvider) model.getSelectedItem().getItem();
 
-      // Only bind the selected provider if it matches the overlay... the selected
-      // provider may not have been updated and cloned yet.
+      // Only bind the selected providers if it matches the overlay... the selected
+      // providers may not have been updated and cloned yet.
 
       if ( current.getOverlay().equalsIgnoreCase( provider.getOverlay() ) ) {
 
@@ -329,7 +329,7 @@ public class AuthProviderController extends AbstractXulEventHandler {
         if ( selectedProvider.getOverlay().equals( provider.getOverlay() ) ) {
           providerToUse = selectedProvider;
         } else {
-          // Clone the provider... the one passed in is the provider used in the method
+          // Clone the providers... the one passed in is the providers used in the method
           // combobox... we don't want that instance in the main list.
           try {
 

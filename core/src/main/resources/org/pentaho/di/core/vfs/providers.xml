@@ -62,7 +62,7 @@
         <scheme name="https"/>
     </provider>
 
-    <!-- Custom Sftp provider -->
+    <!-- Custom Sprovidersider -->
     <provider class-name="org.pentaho.di.core.vfs.SftpFileSystemWindowsProvider">
         <scheme name="sftp"/>
         <if-available class-name="javax.crypto.Cipher"/>

@@ -1,17 +1,24 @@
-/*
- * Copyright 2017-2018 Hitachi Vantara. All rights reserved.
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2017-2019 by Hitachi Vantara : http://www.pentaho.com
+ *
+ *******************************************************************************
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- */
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.repo.controller;
 
@@ -40,10 +47,10 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.platform.api.repository2.unified.RepositoryFileTree;
 import org.pentaho.platform.api.repository2.unified.RepositoryRequest;
-import org.pentaho.repo.model.RepositoryDirectory;
-import org.pentaho.repo.model.RepositoryFile;
-import org.pentaho.repo.model.RepositoryName;
-import org.pentaho.repo.model.RepositoryTree;
+import org.pentaho.repo.providers.repository.model.RepositoryDirectory;
+import org.pentaho.repo.providers.repository.model.RepositoryFile;
+import org.pentaho.repo.providers.repository.model.RepositoryName;
+import org.pentaho.repo.providers.repository.model.RepositoryTree;
 import org.pentaho.repo.util.Util;
 
 import java.util.ArrayList;
@@ -226,11 +233,15 @@ public class RepositoryBrowserController {
   }
 
   public List<RepositoryFile> getRecentFiles() {
+    if ( spoonSupplier.get().rep == null ) {
+      return Collections.emptyList();
+    }
+
     PropsUI props = PropsUI.getInstance();
 
     List<RepositoryFile> repositoryFiles = new ArrayList<>();
-    IUser userInfo = Spoon.getInstance().rep.getUserInfo();
-    String repoAndUser = Spoon.getInstance().rep.getName() + ":" + ( userInfo != null ? userInfo.getLogin() : "" );
+    IUser userInfo = spoonSupplier.get().rep.getUserInfo();
+    String repoAndUser = spoonSupplier.get().rep.getName() + ":" + ( userInfo != null ? userInfo.getLogin() : "" );
     List<LastUsedFile> lastUsedFiles =
       props.getLastUsedRepoFiles().getOrDefault( repoAndUser, Collections.emptyList() );
 
@@ -247,7 +258,7 @@ public class RepositoryBrowserController {
         .equals( Spoon.getInstance().rep.getName() ) ) {
         RepositoryFile repositoryFile = new RepositoryFile();
         final String index = String.valueOf( i );
-        repositoryFile.setObjectId( () -> index );
+        repositoryFile.setObjectId( index );
         repositoryFile.setType( lastUsedFile.isTransformation() ? TRANSFORMATION : JOB );
         repositoryFile.setName( lastUsedFile.getFilename() );
         repositoryFile.setPath( lastUsedFile.getDirectory() );
@@ -319,7 +330,7 @@ public class RepositoryBrowserController {
       RepositoryDirectory repositoryDirectory = new RepositoryDirectory();
       repositoryDirectory.setName( repositoryDirectoryInterface.getName() );
       repositoryDirectory.setPath( repositoryDirectoryInterface.getPath() );
-      repositoryDirectory.setObjectId( repositoryDirectoryInterface.getObjectId() );
+      repositoryDirectory.setObjectId( repositoryDirectoryInterface.getObjectId().getId() );
       repositoryDirectory.setParent( parent );
       return repositoryDirectory;
     } catch ( Exception e ) {
@@ -408,13 +419,18 @@ public class RepositoryBrowserController {
         } else {
           rootDirectory = getRepository().loadRepositoryDirectoryTree();
         }
-        RepositoryTree repositoryTree = new RepositoryTree();
+        RepositoryTree repositoryTree = new RepositoryTree( null );
         RepositoryDirectory repositoryDirectory = RepositoryDirectory.build( null, rootDirectory );
         populateFolders( repositoryDirectory, rootDirectory );
         boolean isPentahoRepository =
           getRepository().getRepositoryMeta().getId().equals( PENTAHO_ENTERPRISE_REPOSITORY );
-        repositoryTree.setIncludeRoot( !isPentahoRepository );
-        repositoryTree.addChild( repositoryDirectory );
+        if ( isPentahoRepository ) {
+          for ( org.pentaho.repo.providers.repository.model.RepositoryObject child : repositoryDirectory.getChildren() ) {
+            repositoryTree.addChild( (RepositoryDirectory) child );
+          }
+        } else {
+          repositoryTree.addChild( repositoryDirectory );
+        }
         return repositoryTree;
       } catch ( Exception e ) {
         return null;
@@ -551,9 +567,9 @@ public class RepositoryBrowserController {
     return repositoryDirectory;
   }
 
-  public List<org.pentaho.repo.model.RepositoryObject> search( String path, String filter ) {
+  public List<org.pentaho.repo.providers.repository.model.RepositoryObject> search( String path, String filter ) {
     RepositoryDirectoryInterface repositoryDirectoryInterface = findDirectory( path );
-    List<org.pentaho.repo.model.RepositoryObject> repositoryObjects = new ArrayList<>();
+    List<org.pentaho.repo.providers.repository.model.RepositoryObject> repositoryObjects = new ArrayList<>();
     List<RepositoryObjectInterface> repositoryObjects1 = ( (RepositoryExtended) getRepository() ).getChildren(
       repositoryDirectoryInterface.getObjectId().getId(), filter );
     for ( RepositoryObjectInterface repositoryObject : repositoryObjects1 ) {
@@ -561,7 +577,7 @@ public class RepositoryBrowserController {
         RepositoryDirectory repositoryDirectory = new RepositoryDirectory();
         repositoryDirectory.setPath( path + "/" + repositoryObject.getName() );
         repositoryDirectory.setName( repositoryObject.getName() );
-        repositoryDirectory.setObjectId( repositoryObject.getObjectId() );
+        repositoryDirectory.setObjectId( repositoryObject.getObjectId().getId() );
         repositoryObjects.add( repositoryDirectory );
       } else {
         RepositoryFile repositoryFile = new RepositoryFile();
@@ -569,7 +585,7 @@ public class RepositoryBrowserController {
         repositoryFile.setName( repositoryObject.getName() );
         repositoryFile.setType( ( (RepositoryObject) repositoryObject ).getObjectType() == RepositoryObjectType
           .TRANSFORMATION ? TRANSFORMATION : JOB );
-        repositoryFile.setObjectId( repositoryObject.getObjectId() );
+        repositoryFile.setObjectId( repositoryObject.getObjectId().getId() );
         repositoryObjects.add( repositoryFile );
       }
     }

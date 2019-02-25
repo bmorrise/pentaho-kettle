@@ -51,7 +51,7 @@ import org.apache.commons.vfs2.provider.sftp.SftpFileProvider;
  *         the file system object re-creates session and opens a new connection.
  *     </li>
  * </ol>
- * This provider replaces {@link SftpFileProvider} in FileSystemManager (see overridden providers.xml).
+ * This providers replaces {@link SftpFileProvider} in FileSystemManager (see overridden providers.xml).
  * And then used to spawn SftpFileSystemWindows and SftpFileObjectWithWindowsSupport.
  */
 public class SftpFileSystemWindowsProvider extends SftpFileProvider {

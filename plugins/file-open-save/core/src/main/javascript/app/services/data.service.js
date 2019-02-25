@@ -22,6 +22,7 @@
  * @module services/data.service
  * @property {String} name The name of the module.
  */
+//TODO: Remove all the unnecessary methods
 define(
     [],
     function() {

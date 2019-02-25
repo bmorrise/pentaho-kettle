@@ -166,6 +166,11 @@ files td.editing .fileTypeIcon {
   margin-top: 3px;
 }
 
+files tr .fileTypeIcon {
+  background: url("../../img/no_image.svg") no-repeat left center;
+}
+
+
 files tr .fileTypeIcon.file-trans {
   background: url("../../img/trans_small.svg") no-repeat left center;
 }

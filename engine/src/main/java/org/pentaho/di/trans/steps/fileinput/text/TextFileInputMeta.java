@@ -208,7 +208,6 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
     /** Length based on bytes or characters */
     @Injection( name = "LENGTH" )
     public String length;
-
   }
 
   /** The filters to use... */
@@ -309,6 +308,7 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
       content.fileFormat = XMLHandler.getTagValue( stepnode, "format" );
       content.encoding = XMLHandler.getTagValue( stepnode, "encoding" );
       content.length = XMLHandler.getTagValue( stepnode, "length" );
+      connection = XMLHandler.getTagValue( stepnode, "connection" );
 
       Node filenode = XMLHandler.getSubNode( stepnode, "file" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
@@ -502,6 +502,7 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
     content.rowNumberField = "";
     content.dateFormatLenient = true;
     content.rowNumberByFile = false;
+    connection = "";
 
     errorHandling.errorIgnored = false;
     errorHandling.skipBadFiles = false;
@@ -710,6 +711,7 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
     retval.append( "    " ).append( XMLHandler.addTagValue( "format", content.fileFormat ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "encoding", content.encoding ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "length", content.length ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "connection", connection ) );
     retval.append( "    " + XMLHandler.addTagValue( "add_to_result_filenames", inputFiles.isaddresult ) );
 
     retval.append( "    <file>" ).append( Const.CR );
@@ -875,6 +877,7 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
       content.fileFormat = rep.getStepAttributeString( id_step, "format" );
       content.encoding = rep.getStepAttributeString( id_step, "encoding" );
       content.length = rep.getStepAttributeString( id_step, "length" );
+      connection = rep.getStepAttributeString( id_step, "connection" );
       String addToResult = rep.getStepAttributeString( id_step, "add_to_result_filenames" );
       if ( Utils.isEmpty( addToResult ) ) {
         inputFiles.isaddresult = true;
@@ -1015,6 +1018,7 @@ public class TextFileInputMeta extends BaseFileInputMeta<BaseFileInputAdditional
       rep.saveStepAttribute( id_transformation, id_step, "format", content.fileFormat );
       rep.saveStepAttribute( id_transformation, id_step, "encoding", content.encoding );
       rep.saveStepAttribute( id_transformation, id_step, "length", content.length );
+      rep.saveStepAttribute( id_transformation, id_step, "connection", connection );
       rep.saveStepAttribute( id_transformation, id_step, "add_to_result_filenames", inputFiles.isaddresult );
 
       rep.saveStepAttribute( id_transformation, id_step, "limit", content.rowLimit );

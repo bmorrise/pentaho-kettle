@@ -30,11 +30,11 @@
 
  **/
 define([
-  "../../services/data.service",
+  "../../services/clipboard.service",
   "text!./folder.html",
   "../utils",
   "css!./folder.css"
-], function(dataService, folderTemplate, utils) {
+], function (clipboardService, folderTemplate, utils) {
   "use strict";
 
   var options = {
@@ -42,6 +42,8 @@ define([
       tree: "<",
       onSelect: "&",
       onOpen: "&",
+      onMove: "&",
+      onCopy: "&",
       showRecents: "<",
       selectedFolder: "<",
       autoExpand: "<"
@@ -51,7 +53,7 @@ define([
     controller: folderController
   };
 
-  folderController.$inject = [dataService.name, "$timeout", "$state"];
+  folderController.$inject = [clipboardService.name, "$timeout", "$state"];
 
   /**
    * The Folder Controller.
@@ -59,7 +61,7 @@ define([
    * This provides the controller for the folder component.
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.
    */
-  function folderController(dt, $timeout, $state) {
+  function folderController(clipboardService, $timeout, $state) {
     var vm = this;
     vm.$onChanges = onChanges;
     vm.openFolder = openFolder;
@@ -67,8 +69,14 @@ define([
     vm.selectAndOpenFolder = selectAndOpenFolder;
     vm.compareFolders = compareFolders;
     vm.getTree = getTree;
+    vm.onDrop = onDrop;
+    vm.onPaste = onPaste;
+    vm.canPaste = canPaste;
+    vm.onRightClick = onRightClick;
     vm.width = 0;
     vm.state = $state;
+    vm.getId = getId;
+    var targetFolder;
 
     /**
      * Called whenever one-way bindings are updated.
@@ -78,25 +86,29 @@ define([
      */
     function onChanges(changes) {
       if (changes.selectedFolder) {
-        var selectedFolder = changes.selectedFolder.currentValue;
-        if (selectedFolder && selectedFolder.path) {
-          if (selectedFolder.path !== "Recents") {
-            if (vm.autoExpand) {
-              vm.autoExpand = false;
-              _openFolderTree(selectedFolder.path);
-            }
-            _selectFolderByPath(selectedFolder.path);
-          }
-        }
+        // var selectedFolder = changes.selectedFolder.currentValue;
+        // if (selectedFolder && selectedFolder.path) {
+        //   if (selectedFolder.path !== "Recents") {
+        //     if (vm.autoExpand) {
+        //       vm.autoExpand = false;
+        //       _openFolderTree(selectedFolder.path);
+        //     }
+        //     _selectFolderByPath(selectedFolder.path);
+        //   }
+        // }
         _setWidth();
       }
     }
 
     function getTree() {
       if (vm.tree) {
-        return vm.tree.includeRoot ? vm.tree.children : vm.tree.children[0].children;
+        return vm.tree;
       }
       return [];
+    }
+
+    function getId(folder) {
+      return folder.provider + ":" + folder.connection + ":" + folder.path;
     }
 
     /**
@@ -106,23 +118,10 @@ define([
      * @param {Object} folder - folder object
      */
     function openFolder(folder, callback) {
-      _setFolder(folder);
-      if (!folder.subfoldersLoaded) {
-        folder.loading = true;
-        dt.getFolders(folder.path).then(function(response) {
-          folder.subfoldersLoaded = true;
-          var loadedFolder = response.data;
-          folder.children = loadedFolder.children;
-          folder.loading = false;
-          if (callback) {
-            callback();
-          } else {
-            _setWidth();
-          }
-        });
-      } else {
+      folder.open = !folder.open;
+      vm.onOpen({openFolder: folder}).then(function () {
         _setWidth();
-      }
+      });
     }
 
     function _setFolder(folder) {
@@ -139,8 +138,6 @@ define([
      * @param {Object} folder - folder object
      */
     function selectFolder(folder) {
-      vm.showRecents = folder === null;
-      vm.selectedFolder = folder;
       vm.onSelect({selectedFolder: folder});
     }
 
@@ -165,7 +162,7 @@ define([
       var parts = path.split("/");
       parts[0] = "/";
       var index = 0;
-      _findAndOpenFolder(vm.tree.children, index, parts, function() {
+      _findAndOpenFolder(vm.tree.children, index, parts, function () {
         // If the folder contents have loaded before the tree we want to use that object's children
         if (vm.selectedFolder && vm.selectedFolder.path === path) {
           var folder = _findFolderByPath(path);
@@ -187,7 +184,7 @@ define([
       if (children[index].name === parts[0]) {
         if (parts.length >= 1) {
           parts.shift();
-          openFolder(children[index], function() {
+          openFolder(children[index], function () {
             _findAndOpenFolder(children[index].children, 0, parts, callback);
           });
         }
@@ -235,6 +232,9 @@ define([
     function compareFolders(first, second) {
       var folder1 = first.value;
       var folder2 = second.value;
+      if (!folder1.path || !folder2.path) {
+        return 0;
+      }
       var path1 = folder1.path.split("/");
       var path2 = folder2.path.split("/");
       var comp = 0;
@@ -257,9 +257,40 @@ define([
      */
     function _setWidth() {
       vm.width = 0;
-      $timeout(function() {
+      $timeout(function () {
         vm.width = document.getElementById("directoryTreeArea").scrollWidth;
       }, 0);
+    }
+
+    function onDrop(from, to) {
+      vm.onMove({
+        from: from,
+        to: to
+      });
+    }
+
+    function onPaste() {
+      if (clipboardService.operation === "copy") {
+        vm.onCopy({
+          from: clipboardService.get(),
+          to: targetFolder
+        });
+      }
+      if (clipboardService.operation === "cut") {
+        vm.onMove({
+          from: clipboardService.get(),
+          to: targetFolder
+        });
+      }
+      clipboardService.set(null, null);
+    }
+
+    function canPaste() {
+      return clipboardService.get();
+    }
+
+    function onRightClick(folder) {
+      targetFolder = folder;
     }
   }
 

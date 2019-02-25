@@ -16,10 +16,33 @@
         class="org.pentaho.repo.controller.RepositoryBrowserController">
   </bean>
 
+  <bean id="fileBrowserController" scope="singleton" class="org.pentaho.repo.controller.FileBrowserController">
+    <argument ref="fileProviders" />
+    <argument ref="processor" />
+  </bean>
+
+  <bean id="processor" class="org.pentaho.repo.providers.processor.Processor"/>
+
+  <bean id="VFSFileProvider" scope="singleton" class="org.pentaho.repo.providers.vfs.VFSFileProvider">
+    <argument ref="processor" />
+  </bean>
+  <bean id="RepositoryFileProvider" scope="singleton" class="org.pentaho.repo.providers.repository.RepositoryFileProvider">
+    <argument ref="repositoryBrowserController"/>
+  </bean>
+  <bean id="LocalFileProvider" scope="singleton" class="org.pentaho.repo.providers.local.LocalFileProvider">
+    <argument ref="processor" />
+  </bean>
+
+  <service id="VFSFileProviderService" ref="VFSFileProvider" interface="org.pentaho.repo.providers.FileProvider"/>
+  <service id="RepositoryFileProviderService" ref="RepositoryFileProvider" interface="org.pentaho.repo.providers.FileProvider"/>
+  <service id="LocalFileProviderService" ref="LocalFileProvider" interface="org.pentaho.repo.providers.FileProvider"/>
+
   <jaxrs:server address="/browser" id="browser-endpoint">
     <jaxrs:serviceBeans>
-      <bean class="org.pentaho.repo.endpoint.RepositoryBrowserEndpoint">
+      <bean class="org.pentaho.repo.endpoint.FileBrowserEndpoint">
         <argument ref="repositoryBrowserController"/>
+        <argument ref="fileBrowserController"/>
+        <argument ref="processor" />
       </bean>
     </jaxrs:serviceBeans>
 
@@ -28,14 +51,17 @@
     </jaxrs:extensionMappings>
 
     <jaxrs:providers>
-      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
     </jaxrs:providers>
 
   </jaxrs:server>
 
   <bean id="RepositoryOpenSaveExtensionPoint" scope="singleton"
-        class="org.pentaho.repo.extension.RepositoryOpenSaveExtensionPoint">
+        class="org.pentaho.repo.extension.FileOpenSaveExtensionPoint">
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
+
+  <reference-list id="fileProviders"
+                  interface="org.pentaho.repo.providers.FileProvider" availability="optional"/>
 
 </blueprint>

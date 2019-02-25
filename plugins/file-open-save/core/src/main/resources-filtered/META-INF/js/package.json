@@ -10,5 +10,13 @@
     "require-css": "${require-css.version}",
     "requirejs-text": "${requirejs-text.version}",
     "dojo": "${dojo.version}"
+  },
+  "config": {
+    "pentaho/modules": {
+      "IPenFileService": {"base": null, "isAbstract": true},
+      "${project.artifactId}_${project.version}/services/vfs.service": {"type": "IPenFileService"},
+      "${project.artifactId}_${project.version}/services/local.service": {"type": "IPenFileService"},
+      "${project.artifactId}_${project.version}/services/repository.service": {"type": "IPenFileService"}
+    }
   }
 }

@@ -1112,7 +1112,7 @@ public class BaseStepDialog extends Dialog {
    * @param optimizeWidth
    * @param listener        A listener that you can use to do custom modifications to the inserted table item, based on
    *                        a value from the provided row
-   * @param getFieldsChoiceDialogProvider the GetFieldsChoice dialog provider
+   * @param getFieldsChoiceDialogProvider the GetFieldsChoice dialog providers
    */
   public static final void getFieldsFromPrevious( RowMetaInterface row, TableView tableView, int keyColumn,
                                                   int[] nameColumn, int[] dataTypeColumn, int lengthColumn,

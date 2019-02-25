@@ -17,8 +17,6 @@
 define([
   "angular"
 ], function(angular) {
-  key.$inject = ["$document"];
-
   /**
    * @param {Object} $document - jQuery or jqLite wrapper for the browser's window.document object.
    * @return {{restrict: string, link: link}} - Key Directive

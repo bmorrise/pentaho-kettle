@@ -93,6 +93,43 @@ file-open-save-app .addDelete input[type="button"]:disabled {
   cursor: default;
 }
 
+file-open-save-app input.upDirectory {
+  background: url("./img/back-enabled.svg") no-repeat center center;
+  height: 18px;
+  width: 18px;
+  cursor: pointer;
+  transform: rotate(90deg);
+}
+
+file-open-save-app input.upDirectory[disabled] {
+  background: url("./img/back-disabled.svg") no-repeat center center;
+}
+
+file-open-save-app input.backHistory {
+  background: url("./img/back-enabled.svg") no-repeat center center;
+  height: 18px;
+  width: 18px;
+  cursor: pointer;
+}
+
+file-open-save-app input.backHistory[disabled] {
+  background: url("./img/back-disabled.svg") no-repeat center center;
+}
+
+
+file-open-save-app input.refreshFolder {
+  background: url("./img/refresh-enabled.svg") no-repeat center center;
+  margin-left: 15px;
+  height: 18px;
+  width: 18px;
+  cursor: pointer;
+}
+
+file-open-save-app input.refreshFolder[disabled] {
+  background: url("./img/refresh-disabled.svg") no-repeat center center;
+}
+
+
 file-open-save-app input.addFolder {
   background: url("./img/add_folder.svg") no-repeat center center;
   height: 19px;
@@ -119,11 +156,10 @@ file-open-save-app input.deleteFolder:hover {
   background-position: right center;
 }
 
-file-open-save-app .addDelete input.addFolder {
-  float: left;
-}
-
-file-open-save-app .addDelete input.deleteFolder {
+file-open-save-app .addDelete input.addFolder,
+file-open-save-app .addDelete input.deleteFolder,
+file-open-save-app .addDelete input.upDirectory,
+file-open-save-app .addDelete input.refreshFolder {
   float: right;
   margin-left: 15px;
 }
@@ -264,3 +300,115 @@ file-open-save-app input:-moz-placeholder {
 file-open-save-app .hasError {
   pointer-events: none;
 }
+
+.drag-file {
+  background-size: 15px;
+  padding: 5px 10px 5px 10px;
+  background-color: #435EA2;
+  color: #ffffff;
+}
+
+.drag-over {
+  background-color: #E6EFF6;
+}
+
+
+.context-menu {
+  z-index:100;
+  position:fixed;
+  display: none;
+  background-color:#ffffff;
+  padding: 0px;
+  min-width: 100px;
+  -moz-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.4);
+  padding: 5px 0;
+  border: 1px solid #F2F2F2;
+}
+
+.context-menu li.divider {
+  border-top: 1px solid #F2F2F2;
+  height: 0;
+  padding: 0;
+}
+
+.context-menu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.context-menu ul li {
+  cursor: pointer;
+  padding: 6px 10px;
+}
+
+.context-menu ul li:hover {
+  background-color: #E6EFF6;
+}
+
+/* ERROR */
+modal {
+  display: none;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  padding: 30px;
+  height: auto;
+  width: 800px;
+  border: 1px solid #CCC;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow: hidden;
+  line-height: 20px;
+  background-color: #FFF;
+  z-index: 10000;
+  opacity: 1;
+}
+
+modal .title {
+  margin-bottom: 30px;
+}
+
+modal .body {
+  line-height: 18px;
+  max-height: 72px;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+modal .errorMiddleTopBefore.breakAll {
+  word-break: break-all;
+}
+
+modal .buttons {
+  margin-top: 30px;
+}
+
+modal .buttons button {
+  float: right;
+  margin-left: 10px;
+}
+
+.backdrop {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0.5;
+  background-color: #000;
+  z-index: 1000;
+}
+
+

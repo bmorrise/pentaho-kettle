@@ -17,13 +17,11 @@
 define([
   "angular"
 ], function(angular) {
-  scrollToFolder.inject = ["$timeout", "$state"];
-
   /**
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.
    * @return {{restrict: string, scope: {model: string}, link: link}} - scrollToFolder directive
    */
-  function scrollToFolder($timeout, $state) {
+  function scrollToFolder($timeout) {
     return {
       restrict: "A",
       scope: {model: "<ngModel", delete: "=didDelete"},
@@ -33,31 +31,26 @@ define([
             return;
           }
           $timeout(function() {
-            scrollToSelectedFolder(folder.path);
+            scrollToSelectedFolder();
           });
         });
 
-        scope.$watch("delete", function(newVal) {
-          if (newVal) {
-            $timeout(function() {
-              scrollToSelectedFolder(scope.model.path, newVal);
-              scope.delete = false;
-            });
-          }
-        });
-
-        function scrollToSelectedFolder(value, didDeleteFolder) {
-          var scrollToElem = document.getElementById(value);
-          if (scrollToElem === null) {
+        function scrollToSelectedFolder() {
+          var selectedFolders = document.getElementsByClassName("selected");
+          if (selectedFolders.length === 0) {
             return;
           }
-          var aScrollToElem = angular.element(scrollToElem);
-          var topPos = aScrollToElem[0].offsetTop;
-          var needsScroll = $state.is("open") && topPos > 444 || $state.is("save") && topPos > 368;
-          if (needsScroll) {
-            element[0].scrollTop = topPos - ($state.is("open") ? 292 : 254);
-          } else if (!needsScroll && didDeleteFolder) {
-            element[0].scrollTop = 0;
+          var selected = angular.element(selectedFolders[0]);
+          var selectedTop = selected[0].offsetTop;
+          var selectedHeight = selected[0].offsetHeight;
+
+          var containerHeight = element[0].offsetHeight;
+          var scrollTop = element[0].scrollTop;
+
+          var actualTop = selectedTop - scrollTop;
+          var actualBottom = selectedTop - scrollTop + selectedHeight;
+          if ( actualBottom > containerHeight || actualTop < 0 ) {
+            element[0].scrollTop = selectedTop - containerHeight / 2 + selectedHeight / 2;
           }
         }
       }
@@ -66,6 +59,6 @@ define([
 
   return {
     name: "scrollToFolder",
-    options: ["$timeout", "$state", scrollToFolder]
+    options: ["$timeout", scrollToFolder]
   };
 });

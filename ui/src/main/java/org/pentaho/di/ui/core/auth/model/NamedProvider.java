@@ -54,7 +54,7 @@ public class NamedProvider extends XulEventSourceAdapter implements NamedModelOb
     try {
       provider.fireBindingsChanged();
     } catch ( Exception e ) {
-      LogChannel.GENERAL.logError( "Binding event error while attempting to select provider.", e );
+      LogChannel.GENERAL.logError( "Binding event error while attempting to select providers.", e );
     }
   }
 

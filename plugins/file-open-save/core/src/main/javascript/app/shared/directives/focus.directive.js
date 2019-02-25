@@ -17,8 +17,6 @@
 define([
   'angular'
 ], function(angular) {
-  focus.inject = ['$timeout'];
-
   /**
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.
    * @return {{restrict: string, scope: {model: string}, link: link}} - Focus directive

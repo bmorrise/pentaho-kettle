@@ -18,7 +18,6 @@ define([
   "../../../components/utils",
   "angular"
 ], function(utils, angular) {
-  resize.$inject = ["$window", "$state"];
   /**
    * @param {Service} $window - A reference to the browser's window object
    * @return {{restrict: string, link: link}} - resizeBreadcrumb directive

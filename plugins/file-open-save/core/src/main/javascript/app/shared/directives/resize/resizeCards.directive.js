@@ -17,8 +17,6 @@
 define([
   "angular"
 ], function(angular) {
-  resize.$inject = ["$window", "$timeout"];
-
   /**
    * @param {Service} $window - A reference to the browser's window object
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.

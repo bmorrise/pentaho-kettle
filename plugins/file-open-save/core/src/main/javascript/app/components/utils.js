@@ -16,21 +16,24 @@
 
 define(
     [],
-    function() {
+    function () {
       "use strict";
       var _font = "14px OpenSansRegular";
       return {
         naturalCompare: naturalCompare,
         getTextWidth: getTextWidth,
-        truncateString: truncateString
+        truncateString: truncateString,
+        buildParameters: buildParameters,
+        concatParameters: concatParameters,
+        getFilename: getFilename
       };
 
-    /**
-     * String comparison with arithmetic comparison of numbers
-     * @param {String} first - The first string to compare
-     * @param {String} second - The second string to compare
-     * @return {number} - Returns -1, 1, or 0 according to the natural comparison of first and second
-     **/
+      /**
+       * String comparison with arithmetic comparison of numbers
+       * @param {String} first - The first string to compare
+       * @param {String} second - The second string to compare
+       * @return {number} - Returns -1, 1, or 0 according to the natural comparison of first and second
+       **/
       function naturalCompare(first, second) {
         // any number ignoring preceding spaces
         var recognizeNbr = /[\\s]*[-+]?(?:(?:\d[\d,]*)(?:[.][\d]+)?|([.][\d]+))/;
@@ -110,5 +113,28 @@ define(
           }
         }
         return res;
+      }
+
+      function buildParameters(parameters) {
+        var start = "?";
+        for (var key in parameters) {
+          var value = parameters[key];
+          if (start.length > 1) {
+            start += "&";
+          }
+          start += key + "=" + value;
+        }
+        return start;
+      }
+
+      function concatParameters(first, second) {
+        for (var key in first) {
+          second[key] = first[key];
+        }
+        return second;
+      }
+
+      function getFilename(path) {
+        return path.substr(path.lastIndexOf("/") + 1, path.length);
       }
     });

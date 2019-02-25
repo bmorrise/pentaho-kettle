@@ -37,7 +37,7 @@ public class DataSourceProviderFactory {
 
   static {
     //
-    // Sets the default provider to DatabaseUtil.
+    // Sets the default providers to DatabaseUtil.
     //
     DataSourceProviderFactory.setDataSourceProviderInterface( new DatabaseUtil() );
   }

@@ -29,13 +29,16 @@
  * @property {Object} options The JSON object containing the configurations for this component.
  **/
 define([
+  "angular",
   "./services/data.service",
+  "./services/file.service",
+  "./services/folder.service",
+  "./services/modal.service",
   "text!./app.html",
   "pentaho/i18n-osgi!file-open-save.messages",
   "./components/utils",
-  "angular",
   "css!./app.css"
-], function(dataService, template, i18n, utils, angular) {
+], function (angular, dataService, fileService, folderService, modalService, template, i18n, utils) {
   "use strict";
 
   var options = {
@@ -45,7 +48,12 @@ define([
     controller: appController
   };
 
-  appController.$inject = [dataService.name, "$location", "$scope", "$timeout", "$state"];
+  appController.$inject = [
+    dataService.name,
+    fileService.name,
+    folderService.name,
+    modalService.name,
+    "$location", "$timeout", "$interval", "$state", "$q", "$document"];
 
   /**
    * The App Controller.
@@ -54,38 +62,52 @@ define([
    *
    * @param {Object} dt - Angular service that contains helper functions for the app component controller
    * @param {Function} $location - Angular service used for parsing the URL in browser address bar
-   * @param {Object} $scope - Application model
    * @param {Object} $timeout - Angular wrapper around window.setTimeout
+   * @param fileService
+   * @param folderService
+   * @param $state
+   * @param $q
    */
-  function appController(dt, $location, $scope, $timeout, $state) {
+  function appController(dt, fileService, folderService, modalService, $location, $timeout, $interval, $state, $q, $document) {
     var vm = this;
     vm.$onInit = onInit;
+    vm.openFolder = openFolder;
     vm.selectFolder = selectFolder;
-    vm.selectFile = selectFile;
     vm.selectFolderByPath = selectFolderByPath;
-    vm.doSearch = doSearch;
-    vm.addFolder = addFolder;
+    vm.onRenameFile = onRenameFile;
+    vm.onCreateFolder = onCreateFolder;
+    vm.onMoveFiles = onMoveFiles;
+    vm.onCopyFiles = onCopyFiles;
+    vm.onSelectFile = onSelectFile;
+    vm.onDeleteFile = onDeleteFile;
     vm.openClicked = openClicked;
     vm.saveClicked = saveClicked;
     vm.okClicked = okClicked;
     vm.cancel = cancel;
-    vm.highlightFile = highlightFile;
-    vm.remove = remove;
+    vm.onHighlight = onHighlight;
     vm.confirmError = confirmError;
     vm.cancelError = cancelError;
     vm.storeRecentSearch = storeRecentSearch;
-    vm.updateDirectories = updateDirectories;
     vm.renameError = renameError;
     vm.recentsHasScrollBar = recentsHasScrollBar;
     vm.addDisabled = addDisabled;
     vm.deleteDisabled = deleteDisabled;
+    vm.upDisabled = upDisabled;
+    vm.refreshDisabled = refreshDisabled;
     vm.onKeyUp = onKeyUp;
     vm.getPlaceholder = getPlaceholder;
-    vm.isPentahoRepo = isPentahoRepo;
     vm.getSelectedFolderName = getSelectedFolderName;
     vm.isSaveEnabled = isSaveEnabled;
     vm.isShowRecents = isShowRecents;
     vm.getFiles = getFiles;
+    vm.getPath = getPath;
+
+    vm.onAddFolder = onAddFolder;
+    vm.onUpDirectory = onUpDirectory;
+    vm.onRefreshFolder = onRefreshFolder;
+    vm.onBackHistory = onBackHistory;
+
+    vm.backHistoryDisabled = backHistoryDisabled;
     vm.currentRepo = "";
     vm.selectedFolder = "";
     vm.fileToSave = "";
@@ -96,6 +118,8 @@ define([
     vm.searching = false;
     vm.state = $state;
     vm.searchResults = [];
+    vm.status = "";
+    var history = [];
 
     /**
      * The $onInit hook of components lifecycle which is called on each controller
@@ -116,35 +140,40 @@ define([
       vm.loadingTitle = i18n.get("file-open-save-plugin.loading.title");
       vm.loadingMessage = i18n.get("file-open-save-plugin.loading.message");
       vm.showRecents = false;
-      vm.folder = {name: "Recents", path: "Recents"};
-      vm.selectedFolder = vm.folder.name;
-      vm.file = null;
+      vm.files = [];
       vm.includeRoot = false;
       vm.autoExpand = false;
-      vm.didDeleteFolder = false;
       vm.searchString = "";
       _resetFileAreaMessage();
 
       vm.filename = $location.search().filename;
       vm.fileType = $location.search().fileType;
       vm.origin = $location.search().origin;
-      $timeout(function() {
-        if ($state.is('open')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.open.title");
-        }
-        if ($state.is('save')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.save.title");
-        }
-        if ($state.is('selectFolder')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.select.title");
-        }
+      vm.filters = $location.search().filters;
+      vm.tree = [
+        {name: "Recents", hasChildren: false, provider: "recents", order: 0}
+      ];
+      vm.folder = vm.tree[0];
+      vm.selectedFolder = "";
+      $timeout(function () {
+        var state = $state.current.name;
+        vm.headerTitle = i18n.get("file-open-save-plugin.app.header." + state + ".title");
         if (!$state.is('selectFolder')) {
           dt.getDirectoryTree($location.search().filter).then(_populateTree);
           dt.getRecentFiles().then(_populateRecentFiles);
+          vm.showRecents = true;
         } else {
           dt.getDirectoryTree("false").then(_populateTree);
         }
         dt.getRecentSearches().then(_populateRecentSearches);
+        vm.loading = false;
+      });
+
+      angular.element($document).bind('keydown', function (event) {
+        var ctrlKey = event.metaKey || event.ctrlKey;
+        if (event.keyCode === 38 && ctrlKey) {
+          onUpDirectory();
+        }
       });
     }
 
@@ -155,36 +184,16 @@ define([
      * @private
      */
     function _populateTree(response) {
-      vm.tree = response.data;
+      vm.tree = vm.tree.concat(response.data);
       var path = $location.search().path;
+      var connection = $location.search().connection;
+      var provider = $location.search().provider;
       if (path) {
+        vm.folder = {path: path, connection: connection, provider: provider};
         vm.autoExpand = true;
         selectFolderByPath(path);
-      } else {
-        if ($state.is('selectFolder')) {
-          if (isPentahoRepo()) {
-            selectFolderByPath("/home");
-          } else {
-            selectFolderByPath("/");
-          }
-        }
-        vm.showRecents = true;
       }
-      dt.getCurrentRepo().then(function(response) {
-        vm.currentRepo = response.data.name;
-        vm.loading = false;
-      });
       _setFileToSaveName();
-    }
-
-    /**
-     * Determines whether or no this is a pentaho repository
-     *
-     * @returns {boolean}
-     * @private
-     */
-    function isPentahoRepo() {
-      return vm.tree.children[0].children.length === 2 && vm.tree.children[0].children[0].name === "home";
     }
 
     /**
@@ -225,66 +234,40 @@ define([
     }
 
     /**
+     * Open the folder
+     * @param {folder} folder - Folder to open
+     */
+    function openFolder(folder) {
+      return folderService.openFolder(folder);
+    }
+
+    /**
      * Sets variables showRecents, folder, and selectedFolder according to the contents of parameter
      *
      * @param {Object} folder - folder object
-     * @param {Function} callback - an optional callback for when selection completes
      */
-    function selectFolder(folder, callback) {
+    function selectFolder(folder) {
+      if (history.length === 0 || history[history.length - 1].path !== folder.path) {
+        addHistory(folder);
+      }
       vm.searchString = "";
       if (vm.searching) {
         _clearSearch();
       }
       _resetFileAreaMessage();
-      vm.file = null;
-      if ( folder === vm.folder ) {
-        return;
-      }
-      if (folder) {
+      vm.files = [];
+      if (folder !== vm.folder || vm.folder.loaded === false) {
         vm.folder = folder;
         vm.showRecents = false;
-        if (!vm.folder.loaded && vm.folder.subfoldersLoaded) {
-          vm.fileLoading = true;
-          vm.folder.loaded = true;
-          dt.getFiles(vm.folder.path).then(function(response) {
-            var loadedFolder = response.data;
-            vm.folder.children = vm.folder.children.concat(loadedFolder.children);
-            vm.fileLoading = false;
-            _updateDisplay(vm.folder);
-            if (callback) {
-              callback();
-            }
-          });
-        } else if (!vm.folder.loaded && !vm.folder.subfoldersLoaded) {
-          vm.fileLoading = true;
-          vm.folder.subfoldersLoaded = true;
-          vm.folder.loaded = true;
-          dt.getFilesAndFolders(vm.folder.path).then(function(response) {
-            var loadedFolder = response.data;
-            vm.folder.children = loadedFolder.children;
-            vm.fileLoading = false;
-            _updateDisplay(vm.folder);
-            if (callback) {
-              callback();
-            }
-          });
+        if (folder.provider === "recents") {
+          vm.showRecents = true;
         } else {
-          _updateDisplay(folder);
-          if (callback) {
-            callback();
-          }
+          vm.fileLoading = true;
+          folderService.selectFolder(folder, vm.filters).then(function () {
+            vm.fileLoading = false;
+          });
         }
-      } else {
-        vm.showRecents = true;
-        vm.folder = {name: "Recents", path: "Recents"};
-        vm.selectedFolder = "Recents";
       }
-    }
-
-    function _updateDisplay(folder) {
-      vm.showRecents = false;
-      vm.selectedFolder = ((vm.folder.name === "home" || vm.folder.name === "public") && vm.folder.parent === "/") ?
-          _capsFirstLetter(folder.name) : folder.name;
     }
 
     /**
@@ -293,10 +276,10 @@ define([
      * @param {String} path - path to file
      */
     function selectFolderByPath(path) {
-      var folder = _findFolderByPath(path);
+      var folder = folderService.findFolderByPath(vm.tree, vm.folder, path);
       if (folder) {
-        $timeout(function() {
-          vm.folder = folder;
+        $timeout(function () {
+          selectFolder(folder);
         });
       }
     }
@@ -307,7 +290,7 @@ define([
      *
      * @param {Object} file - file object
      */
-    function selectFile(file) {
+    function onSelectFile(file) {
       if (file.type === "folder") {
         vm.searchString = "";
         selectFolder(file);
@@ -316,144 +299,15 @@ define([
       }
     }
 
+    /**
+     * Get file list for current state
+     * @returns {Array} - Search result files or selected folder children
+     */
     function getFiles() {
       if (vm.searchString !== "") {
         return vm.searchResults;
       }
       return vm.folder.children;
-    }
-
-    var searchPaths = [];
-    var maxSearching = 2;
-    var currentSearches = [];
-    var searchInterval;
-    var checkInterval;
-    var start;
-
-    /**
-     * Calls a filter for either recent files or files/folders in current folder
-     */
-    function doSearch(searchValue) {
-      if (searchValue) {
-        _initSearch();
-        start = (new Date()).getTime();
-        if (vm.showRecents === true) {
-          selectFolder(vm.tree.children[0], function() {
-            $timeout(function() {
-              _doSearch(searchValue);
-            })
-          });
-        } else {
-          _doSearch(searchValue);
-        }
-      } else {
-        _clearSearch();
-        _setSearchState();
-      }
-    }
-
-    function _setSearchState() {
-      if (isPentahoRepo() && vm.searchString === "" && vm.selectedFolder === "/") {
-        vm.showRecents = true;
-        vm.folder = {name: "Recents", path: "Recents"};
-        vm.selectedFolder = vm.folder.name;
-        _resetFileAreaMessage();
-      } else if (vm.searchString === "") {
-        _resetFileAreaMessage();
-      }
-    }
-
-    function _initSearch() {
-      vm.searchResults = [];
-      searchPaths = [];
-      currentSearches = [];
-    }
-
-    function _completeSearch() {
-      clearInterval(searchInterval);
-      clearInterval(checkInterval);
-      $timeout(function() {
-        vm.searching = false;
-      });
-    }
-
-    /**
-     * Resets the search string and runs search against that string (which returns normal dir structure).
-     */
-    function _clearSearch() {
-      dt.cancelSearch();
-      _completeSearch();
-      vm.searchResults = [];
-      vm.searchString = "";
-      _resetFileAreaMessage();
-    }
-
-    function _doSearch(searchValue) {
-      vm.searching = true;
-      vm.showMessage = true;
-      vm.searchString = searchValue;
-      _setFileAreaMessage();
-      _loadSearchPaths(vm.folder, searchValue);
-      searchInterval = setInterval(function() {
-        if (currentSearches.length <= maxSearching) {
-          var path = searchPaths.pop();
-          if (path) {
-            _loadSearchResults(path, searchValue);
-          }
-        }
-      });
-      checkInterval = setInterval(function() {
-        if (currentSearches.length === 0) {
-          _completeSearch();
-        }
-      }, 1000);
-    }
-
-    function _loadSearchPaths(folder, searchValue) {
-      dt.search(folder.path, searchValue).then(function(response) {
-        vm.searchResults = vm.searchResults.concat(response.data);
-        if (vm.searchResults.length > 0) {
-          vm.showMessage = false;
-        }
-      });
-      for (var i = 0; i < folder.children.length; i++) {
-        if (folder.children[i].type === "folder") {
-          searchPaths.push(folder.children[i].path);
-        }
-      }
-    }
-
-    function _loadSearchResults(path, searchValue) {
-      currentSearches.push(path);
-      dt.getFolders(path).then(function(response) {
-        _loadSearchPaths(response.data, searchValue);
-        var index = currentSearches.indexOf(path);
-        currentSearches.splice(index, 1);
-      }, function() {
-        var index = currentSearches.indexOf(path);
-        currentSearches.splice(index, 1);
-      });
-    }
-
-    /**
-     * Recursively searches for the value in elements and any of its children
-     *
-     * @param {Object} elements - Object with files and folders
-     * @param {String} value - String used to search within elements
-     * @private
-     */
-    function _filter(elements, value) {
-      if (elements) {
-        for (var i = 0; i < elements.length; i++) {
-          var name = elements[i].name.toLowerCase();
-          var inResult = name.indexOf(value.toLowerCase()) !== -1;
-          vm.showMessage = inResult ? false : vm.showMessage;
-          elements[i].inResult = inResult;
-          if (elements[i].children.length > 0) {
-            _filter(elements[i].children, value);
-          }
-        }
-      }
     }
 
     /**
@@ -479,11 +333,13 @@ define([
      * Sets the selected file to the file parameter to highlight it in UI.
      * Also, sets the file to save text according to the selected file.
      *
-     * @param {Object} file - file object
+     * @param {Object} files - file objects
      */
-    function highlightFile(file) {
-      vm.file = file;
-      vm.fileToSave = file.type === "folder" ? vm.fileToSave : file.name;
+    function onHighlight(files) {
+      vm.files = files;
+      if (files.length === 1) {
+        vm.fileToSave = files[0].type === "folder" ? vm.fileToSave : files[0].name;
+      }
     }
 
     /**
@@ -505,6 +361,7 @@ define([
       _save(false);
     }
 
+    //TODO: Fix this crap
     /**
      * Calls data service to open file
      * @param {Object} file - File object
@@ -514,30 +371,31 @@ define([
       try {
         if (vm.selectedFolder === "Recents" && vm.origin === "spoon") {
           dt.openRecent(file.repository + ":" + (file.username ? file.username : ""),
-            file.objectId.id).then(function(response) {
-              _closeBrowser();
-            }, function(response) {
-              _triggerError(16);
-            });
+              file.objectId).then(function (response) {
+            _closeBrowser();
+          }, function (response) {
+            _triggerError(16);
+          });
         } else {
-          select(file.objectId.id, file.name, file.path, file.type);
+          select(file.objectId, file.name, file.path, file.type);
         }
       } catch (e) {
         if (file.repository) {
           dt.openRecent(file.repository + ":" + (file.username ? file.username : ""),
-            file.objectId.id).then(function(response) {
-              _closeBrowser();
-            }, function(response) {
-              _triggerError(16);
-            });
+              file.objectId).then(function (response) {
+            _closeBrowser();
+          }, function (response) {
+            _triggerError(16);
+          });
         } else {
-          dt.openFile(file.objectId.id, file.type).then(function(response) {
+          dt.openFile(file.objectId, file.type, file.path).then(function (response) {
             _closeBrowser();
           });
         }
       }
     }
 
+    //TODO: Fix this crap
     /**
      * Calls data service to save file if there is no error
      * @param {boolean} override - Override file?
@@ -550,30 +408,33 @@ define([
       else if (override || !_isDuplicate()) {
         try {
           dt.checkForSecurityOrDupeIssues(vm.folder.path, vm.fileToSave, vm.file === null ? null : vm.file.name,
-            override).then(function(response) {
-              if (response.status === 200) {
-                select("", vm.fileToSave, vm.folder.path, "");
-              } else {
-                _triggerError(3);
-              }
-            });
+              override).then(function (response) {
+            if (response.status === 200) {
+              select("", vm.fileToSave, vm.folder.path, "");
+            } else {
+              _triggerError(3);
+            }
+          });
         } catch (e) {
           dt.saveFile(vm.folder.path, vm.fileToSave, vm.file === null ? null : vm.file.name, override)
-            .then(function(response) {
-              if (response.status === 200) {
-                _closeBrowser();
-              } else {
-                _triggerError(3);
-              }
-            });
+              .then(function (response) {
+                if (response.status === 200) {
+                  _closeBrowser();
+                } else {
+                  _triggerError(3);
+                }
+              });
         }
       } else {
         _triggerError(1);
       }
     }
 
+    /**
+     * Handler for when the ok button is clicked
+     */
     function okClicked() {
-      select(vm.file.objectId.id, vm.file.name, vm.file.path, vm.file.type);
+      select(vm.file.objectId, vm.file.name, vm.file.path, vm.file.type, vm.file.connection);
     }
 
     /**
@@ -618,6 +479,9 @@ define([
         case 6: // Delete Folder
           commitRemove();
           break;
+        case 21:
+          commitRemove();
+          break;
         default:
           break;
       }
@@ -642,7 +506,7 @@ define([
         var index = vm.folder.children.indexOf(file);
         vm.folder.children.splice(index, 1);
       }
-      $timeout(function() {
+      $timeout(function () {
         _triggerError(errorType);
       });
     }
@@ -664,7 +528,24 @@ define([
      * @return {boolean} - True if no folder is selected or if Recents is selected, false otherwise
      */
     function addDisabled() {
-      return addDeleteDisabled() || vm.searchString !== "";
+      return vm.folder && !vm.folder.canAddChildren;
+    }
+
+
+    /**
+     * Determines if the refresh button is to be disabled
+     * @returns {boolean} - True if current folder is selected and not loaded
+     */
+    function refreshDisabled() {
+      return vm.folder && !vm.folder.loaded;
+    }
+
+    /**
+     * Determines if the up directory button is to be disabled
+     * @returns {boolean} - True if current folder is select and not loaded
+     */
+    function upDisabled() {
+      return vm.folder && !vm.folder.loaded;
     }
 
     /**
@@ -673,35 +554,17 @@ define([
      * or if root folder/file is selected, false otherwise
      */
     function deleteDisabled() {
-      return addDeleteDisabled() || isRoot();
-    }
-
-    /**
-     * Determines if add or delete button is to be disabled
-     * @return {boolean} - True if no folder is selected, if Recents is selected, or if a message is showing.
-     * False otherwise
-     */
-    function addDeleteDisabled() {
-      return (vm.folder === null || vm.folder.path === "Recents" || vm.showMessage);
-    }
-
-    /**
-     * Determines if (selected folder is a root folder according to repository type AND if no file is selected) OR
-     * if the selected file is a root folder
-     * @return {boolean} - True if root folder is selected and no file is selected, false otherwise
-     */
-    function isRoot() {
-      var isFileNull = vm.file === null;
-      if (isPentahoRepo()) {
-        if (isFileNull) {
-          return vm.folder.path === "/home" || vm.folder.path === "/home/admin" || vm.folder.path === "/";
+      if (vm.files.length > 0) {
+        for (var i = 0; i < vm.files.length; i++) {
+          if (!vm.files[i].canEdit) {
+            return true;
+          }
         }
-        return vm.file.type === "folder" && (vm.file.path === "/home" || vm.file.path === "/home/admin");
+        return false;
+      } else if (vm.folder) {
+        return !vm.folder.canEdit;
       }
-      if (isFileNull) {
-        return vm.folder.path === "/";
-      }
-      return vm.file.type === "folder" && vm.file.path === "/";
+      return false;
     }
 
     /**
@@ -716,179 +579,201 @@ define([
     /**
      * Called if user selects to delete the selected folder or file.
      */
-    function remove() {
-      if (vm.file === null || vm.file.type === "folder") {
-        _triggerError(6);
+    //TODO: Change message based on whether or not multiple files are selected
+    function onDeleteFile(files) {
+      if (files) {
+        vm.files = files;
+      }
+      if (vm.files.length === 1) {
+        if (vm.files[0].type === "folder") {
+          _triggerError(6);
+        } else {
+          _triggerError(5);
+        }
       } else {
-        _triggerError(5);
-      }
-    }
-
-    function _findFolderByTraverse(children, path) {
-      for (var i = 0; i < children.length; i++) {
-        if (children[i].path === path) {
-          return children[i];
-        }
-        if (children[i].children.length > 0) {
-          return _findFolderByTraverse(children[i].children, path);
+        if (vm.files.length === 0) {
+          _triggerError(6);
+        } else {
+          _triggerError(21);
         }
       }
-      return null;
     }
-
-    function _findFolderByPath(path) {
-      path = path === "/" ? "" : path;
-      var parts = path.split("/");
-      var folder = _findFolder(vm.tree.children, parts, 0);
-      return folder;
-    }
-
-    function _findFolder(children, parts, index) {
-      for (var i = 0; i < children.length; i++) {
-        if (children[i].name === parts[index]) {
-          if (index < parts.length - 1) {
-            return _findFolder(children[i].children, parts, ++index);
-          } else {
-            return children[i];
-          }
-        }
-      }
-
-      var folder = {name: parts[index], path: parts.slice(0, index+1).join("/"), children: []};
-      children.push(folder);
-      if (index < parts.length - 1) {
-        return _findFolder(folder.children, parts, ++index);
-      } else {
-        return folder;
-      }
-    }
-
 
     /**
      * Calls the service for removing the file
      */
+    // TODO: Fix issue where if you double-click into a folder and you delete it's a select file
     function commitRemove() {
-      if (vm.file === null) {// delete folder from directory tree panel
-        dt.remove(vm.folder.objectId ? vm.folder.objectId.id : "", vm.folder.name, vm.folder.path, vm.folder.type)
-          .then(function() {
-            var parentFolder = _findFolderByTraverse(vm.tree.children, vm.folder.parent);
-            var index = parentFolder.children.indexOf(vm.folder);
-            parentFolder.children.splice(index, 1);
-            selectFolder(parentFolder);
-            vm.selectedFolder = vm.folder.name;
-            vm.file = null;
-            vm.searchString = "";
-            vm.showMessage = false;
-            dt.getRecentFiles().then(_populateRecentFiles);
-            vm.didDeleteFolder = true;
-          }, function(response) {
+      if (vm.files.length === 0) {
+        folderService.deleteFolder(vm.tree, vm.folder).then(function (parentFolder) {
+          vm.folder = null;
+          selectFolder(parentFolder);
+          vm.file = null;
+          vm.searchString = "";
+          vm.showMessage = false;
+          dt.getRecentFiles().then(_populateRecentFiles);
+        }, function (response) {
+          if (response.status === 406) {// folder has open file
+            _triggerError(13);
+          } else {
+            _triggerError(8);
+          }
+        });
+      } else {
+        fileService.deleteFiles(vm.folder, vm.files).then(function (response) {
+          vm.files = [];
+          dt.getRecentFiles().then(_populateRecentFiles);
+        }, function (response) {
+          if (vm.file.type === "folder") {
             if (response.status === 406) {// folder has open file
               _triggerError(13);
             } else {
               _triggerError(8);
             }
-          });
-      } else {// delete file or folder from files list panel
-        dt.remove(vm.file.objectId.id, vm.file.name, vm.file.path, vm.file.type)
-          .then(function() {
-            var index = vm.folder.children.indexOf(vm.file);
-            vm.folder.children.splice(index, 1);
-            vm.file = null;
-            dt.getRecentFiles().then(_populateRecentFiles);
-          }, function(response) {
-            if (vm.file.type === "folder") {
-              if (response.status === 406) {// folder has open file
-                _triggerError(13);
-              } else {
-                _triggerError(8);
-              }
-            } else if (response.status === 406) {// file is open
-              _triggerError(14);
-            } else {
-              _triggerError(9);
-            }
-          });
+          } else if (response.status === 406) {// file is open
+            _triggerError(14);
+          } else {
+            _triggerError(9);
+          }
+        });
       }
     }
 
     /**
      * Called if user selects to add a folder or file while Recents is not selected.
      */
-    function addFolder() {
-      if (vm.selectedFolder !== "Recents") {
-        var folder = {};
-        var name = _getFolderName();
-        folder.parent = vm.folder.path;
-        folder.path = vm.folder.path + (vm.folder.path.charAt(vm.folder.path.length - 1) === "/" ? "" : "/") + name;
-        folder.name = name;
-        folder.visible = vm.folder.open;
-        folder.new = true;
-        folder.autoEdit = true;
-        folder.type = "folder";
-        folder.children = [];
-        vm.folder.children.splice(0, 0, folder);
-      }
-    }
-
-    function updateDirectories(folder, oldPath, newPath) {
-      folder.path = newPath;
-      for (var i = 0; i < folder.children.length; i++) {
-        _updateDirectories(folder.children[i], oldPath, newPath);
-      }
-      for (var k = 0; k < vm.recentFiles.length; k++) {
-        if ((vm.recentFiles[k].path + "/").lastIndexOf(oldPath + "/", 0) === 0) {
-          dt.updateRecentFiles(oldPath, newPath).then(function() {
-            dt.getRecentFiles().then(_populateRecentFiles);
-          });
-          break;
-        }
-      }
+    function onAddFolder() {
+      folderService.addFolder(vm.folder);
     }
 
     /**
-     * Update all child folder paths on parent rename
-     *
-     * @param {Object} child - Folder Object
-     * @param {String} oldPath - String path of old directory path
-     * @param {String} newPath - String path of new directory path
-     * @private
+     * Create new folder
+     * @param {folder} folder - folder object definition
+     * @returns {*} - A promise for the creation
      */
-    function _updateDirectories(child, oldPath, newPath) {
-      child.parent = child.parent.replace(oldPath, newPath);
-      child.path = child.path.replace(oldPath, newPath);
-      for (var i = 0; i < child.children.length; i++) {
-        _updateDirectories(child.children[i], oldPath, newPath);
-      }
-    }
-
-    /**
-     * Sets the default folder name to "New Folder" plus an incrementing integer
-     * each time there is a folder called "New Folder <i+1>"
-     *
-     * @return {string} - Name of the folder
-     * @private
-     */
-    function _getFolderName() {
-      var name = "New Folder";
-      var index = 0;
-      var check = name;
-      var search = true;
-      while (search) {
-        var found = false;
-        for (var i = 0; i < vm.folder.children.length; i++) {
-          if (vm.folder.children[i].name === check) {
-            found = true;
-            break;
+    function onCreateFolder(folder) {
+      return $q(function (resolve, reject) {
+        folderService.createFolder(folder).then(function () {
+          resolve();
+        }, function (status) {
+          switch (status) {
+            case 304:
+              _triggerError(4);
+              break;
           }
+          reject();
+        });
+      });
+    }
+
+    /**
+     * Copy files to a new directory
+     * @param {array} from - List of file objects to move
+     * @param {file} to - File object to move
+     * @returns {*} - a promise to handle the creation
+     */
+    function onCopyFiles(from, to) {
+      copyFiles(from, to);
+    }
+
+    /**
+     * Move files to a new directory
+     * @param {array} from - List of file objects to move
+     * @param {file} to - File object to move
+     * @returns {*} - a promise to handle the creation
+     */
+    function onMoveFiles(from, to) {
+      if (fileService.isCopy(from[0], to)) {
+        copyFiles(from, to);
+      } else {
+        moveFiles(from, to);
+      }
+    }
+
+    /**
+     * Move files from one directory to another
+     * @param from
+     * @param to
+     */
+    function moveFiles(from, to) {
+      fileService.moveFiles(from, to).then(function (response) {
+        var id = response.data;
+        fileService.handleStatus(id).then(function(data) {
+          completeMove(from, to, data.succeeded);
+        });
+      }, function (status) {
+        switch (status) {
+          case 304:
+            _triggerError(20);
+            break;
         }
-        if (found) {
-          index++;
-          check = name + " " + index;
-        } else {
-          search = false;
+      });
+    }
+
+    /**
+     *
+     * @param from
+     * @param to
+     * @param movedFiles
+     */
+    function completeMove(from, to, movedFiles) {
+      if (movedFiles.length !== from.length) {
+        //TODO: Show an error that speaks to some files couldn't be moved
+        _triggerError(20);
+      }
+      to.loaded = false;
+      var parentPath = from[0].path.substr(0, from[0].path.lastIndexOf("/"));
+      var parentFolder = folderService.findFolderByPath(vm.tree, from[0], parentPath);
+      for (var i = from.length - 1; i >= 0; i--) {
+        if (movedFiles.indexOf(from[i].path) !== -1) {
+          parentFolder.children.splice(parentFolder.children.indexOf(from[i]), 1);
+          vm.files.splice(vm.files.indexOf(from[i]), 1);
         }
       }
-      return check;
+      onRefreshFolder();
+    }
+
+    /**
+     * Copies a file from on provider to another
+     * @param from
+     * @param to
+     */
+    //TODO: Show which files were not copied and allow user to select up overwrite or rename
+    function copyFiles(from, to) {
+      fileService.copyFiles(from, to).then(function (response) {
+        // TODO: If loaded, add the files, if not don't worry about it
+        to.loaded = false;
+        console.log("Copy Complete.");
+        console.log(response.data);
+        onRefreshFolder();
+        // TODO: Show message if some couldn't be copied
+      }, function (response) {
+        console.log(response);
+        console.log("Copy Failed.");
+        onRefreshFolder();
+        // TODO: Trigger error that files couldn't be copied
+      });
+    }
+
+    /**
+     * Renames a file
+     * @param file
+     * @param newPath
+     * @returns {*}
+     */
+    function onRenameFile(file, newPath) {
+      return $q(function (resolve, reject) {
+        fileService.renameFile(file, newPath).then(function () {
+          resolve();
+        }, function (status) {
+          switch (status) {
+            case 409:
+              _triggerError(11);
+              break;
+          }
+          reject();
+        });
+      });
     }
 
     /**
@@ -927,7 +812,7 @@ define([
       if (event.keyCode === 13 && event.target.id !== "searchBoxId") {
         if ($state.is("open")) {
           if (vm.file !== null) {
-            selectFile(vm.file);
+            onSelectFile(vm.file);
           }
         } else if (!vm.showRecents) {
           _save(false);
@@ -966,11 +851,11 @@ define([
     }
 
     /**
-    * Returns input with first letter capitalized
-    * @param {string} input - input string
-    * @return {string} - returns input with first letter capitalized
-    * @private
-    */
+     * Returns input with first letter capitalized
+     * @param {string} input - input string
+     * @return {string} - returns input with first letter capitalized
+     * @private
+     */
     function _capsFirstLetter(input) {
       return input.charAt(0).toUpperCase() + input.slice(1);
     }
@@ -982,7 +867,8 @@ define([
      */
     function getSelectedFolderName() {
       var retVal = i18n.get("file-open-save-plugin.app.search-results-in.label");
-      if (vm.selectedFolder === "" && isPentahoRepo()) {
+      if (vm.selectedFolder === "") {
+        // if (vm.selectedFolder === "" && isPentahoRepo()) {
         retVal += "\"" + vm.currentRepo;
       } else {
         retVal += "\"" + vm.selectedFolder;
@@ -1011,8 +897,65 @@ define([
      */
     function isShowRecents() {
       if (vm.recentFiles) {
-        return !vm.showMessage && vm.showRecents && vm.recentFiles.length > 0 && !$state.is('selectFolder');
+        return !vm.showMessage && vm.showRecents && vm.recentFiles.length > 0 && !$state.is('selectFolder') && !$state.is('selectFile');
       }
+    }
+
+    /**
+     * Get the path of the current selected file
+     * @returns {string} - the path of the currently selected file/folder
+     */
+    function getPath() {
+      if (vm.files.length === 1) {
+        return folderService.getPath(vm.files[0])
+      } else {
+        return folderService.getPath(vm.folder)
+      }
+    }
+
+    /**
+     * Navigate up a directory
+     */
+    function onUpDirectory() {
+      if (vm.folder) {
+        var path = folderService.getPath(vm.folder);
+        selectFolderByPath(path.substr(0, path.lastIndexOf("/")));
+      }
+    }
+
+    /**
+     * Add a location to the history
+     * @param {folder} folder - the folder to add to the history
+     */
+    function addHistory(folder) {
+      history.push(folder);
+    }
+
+    /**
+     * Navigate back in the history
+     */
+    function onBackHistory() {
+      vm.file = null;
+      history.pop();
+      selectFolder(history[history.length - 1]);
+    }
+
+    /**
+     * Refresh the currently visible folder
+     */
+    function onRefreshFolder() {
+      if (vm.folder) {
+        vm.folder.loaded = false;
+        selectFolder(vm.folder);
+      }
+    }
+
+    /**
+     * Whether or not to disable the back history button
+     * @returns {boolean} - Whether or not to disable the back history button
+     */
+    function backHistoryDisabled() {
+      return history.length <= 1;
     }
   }
 
@@ -1020,4 +963,5 @@ define([
     name: "fileOpenSaveApp",
     options: options
   };
-});
+})
+;

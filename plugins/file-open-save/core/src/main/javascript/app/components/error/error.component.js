@@ -40,7 +40,7 @@ define([
   var options = {
     bindings: {
       errorType: "<",
-      errorFile: "<",
+      errorFiles: "<",
       errorFolder: "<",
       onErrorConfirm: "&",
       onErrorCancel: "&"
@@ -108,7 +108,7 @@ define([
      * @return {boolean} - true if the errorType is not 1, 5, or 6. Returns false otherwise.
      */
     function hideConfirmButton() {
-      return vm.errorType !== 1 && vm.errorType !== 5 && vm.errorType !== 6;
+      return vm.errorType !== 1 && vm.errorType !== 5 && vm.errorType !== 6 && vm.errorType !== 21;
     }
 
     /**
@@ -135,14 +135,15 @@ define([
      */
     function _setMessages() {
       vm.breakAll = false;
+      console.log(vm.errorType);
       switch (vm.errorType) {
         case 1:// Overwrite
-          var overwriteBefore = vm.errorFile.type === "job" ?
+          var overwriteBefore = vm.errorFiles[0].type === "job" ?
             i18n.get("file-open-save-plugin.error.overwrite.job.top-before.message") + " " :
             i18n.get("file-open-save-plugin.error.overwrite.trans.top-before.message") + " ";
           var overwriteAfter = " " + i18n.get("file-open-save-plugin.error.overwrite.top-after.message");
           var overwriteFilenameMaxWidth = _max - utils.getTextWidth(overwriteBefore + overwriteAfter + _ellipsis);
-          var overwriteFilename = vm.errorFile.name;
+          var overwriteFilename = vm.errorFiles[0].name;
           if (utils.getTextWidth(overwriteFilename) > overwriteFilenameMaxWidth) {
             overwriteFilename = utils.truncateString(overwriteFilename, overwriteFilenameMaxWidth) + _ellipsis;
           }
@@ -179,7 +180,7 @@ define([
           break;
         case 5:// Delete file
           var deleteFileBefore = i18n.get("file-open-save-plugin.error.delete-file.message") + " ";
-          var deleteFileName = vm.errorFile.name;
+          var deleteFileName = vm.errorFiles[0].name;
           var deleteFileFilenameMaxWidth = _max - utils.getTextWidth(deleteFileBefore + " ?" + _ellipsis);
           if (utils.getTextWidth(deleteFileName) > deleteFileFilenameMaxWidth) {
             deleteFileName = utils.truncateString(deleteFileName, deleteFileFilenameMaxWidth) + _ellipsis + " ";
@@ -213,7 +214,7 @@ define([
         case 7:// File Exists
           var fileExistsBefore = i18n.get("file-open-save-plugin.error.file-exists.top.message") + " ";
           var fileExistsFilenameMaxWidth = _max - utils.getTextWidth(fileExistsBefore + " ." + _ellipsis);
-          var fileExistsFilename = vm.errorFile.newName;
+          var fileExistsFilename = vm.errorFiles[0].newName;
           if (utils.getTextWidth(fileExistsFilename) > fileExistsFilenameMaxWidth) {
             fileExistsFilename = utils.truncateString(fileExistsFilename, fileExistsFilenameMaxWidth) + _ellipsis + " ";
           }
@@ -285,7 +286,7 @@ define([
         case 16:// Unable to Open Recent file
           // file type values are known, and therefore we do not need to calculate the message width - we know it
           // will fit within the limit
-          var fullMessage = i18n.get("file-open-save-plugin.missing-recent.message", {"filetype": vm.errorFile.type});
+          var fullMessage = i18n.get("file-open-save-plugin.missing-recent.message", {"filetype": vm.errorFiles[0].type});
           _setMessage(i18n.get("file-open-save-plugin.missing-recent.title"),
               fullMessage,
               "", "", "", "",
@@ -308,6 +309,30 @@ define([
               i18n.get("file-open-save-plugin.error.invalid-file-name.rename.top.message"),
               "", "", "", "",
               i18n.get("file-open-save-plugin.error.invalid-file-name.rename.ok.button"));
+          break;
+        case 20:// Cannot move file to directory
+          _setMessage(i18n.get("file-open-save-plugin.error.unable-to-move-file.title"),
+              i18n.get("file-open-save-plugin.error.unable-to-move-file.message"),
+              "", "", "", "",
+              i18n.get("file-open-save-plugin.error.unable-to-move-file.close.button"));
+          break;
+        case 21:// Warn about deleting multiple files
+          var deleteManyBefore = i18n.get("file-open-save-plugin.error.delete-many.before.message") + " ";
+          var deleteManyName = vm.errorFiles.length;
+          var deleteManyAfter = " " + i18n.get("file-open-save-plugin.error.delete-many.after.message");
+          var deleteManyMaxWidth = _max -
+              utils.getTextWidth(deleteManyBefore + deleteManyAfter + _ellipsis);
+          if (utils.getTextWidth(deleteManyName) > deleteManyMaxWidth) {
+            deleteManyName = utils.truncateString(deleteManyName, deleteManyMaxWidth) + _ellipsis;
+          }
+          _setMessage(i18n.get("file-open-save-plugin.error.delete-many.title"),
+              deleteManyBefore,
+              deleteManyName,
+              deleteManyAfter,
+              "",
+              i18n.get("file-open-save-plugin.error.delete-many.accept.button"),
+              i18n.get("file-open-save-plugin.error.delete-many.no.button"));
+          vm.breakAll = true;
           break;
         default:
           _setMessage("", "", "", "", "", "", "");

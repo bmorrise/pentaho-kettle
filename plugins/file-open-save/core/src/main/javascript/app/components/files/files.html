@@ -38,18 +38,28 @@
       </thead>
     </table>
   </div>
-  <div ng-hide="vm.loading" id="bodyWrapper" class="bodyWrapper">
+  <div ng-hide="vm.loading" id="bodyWrapper" class="bodyWrapper" context="filesFolderContext">
     <table id="filesTableBody" ng-class="{searchTable: vm.search}">
       <tbody>
       <tr ng-repeat="file in vm.files | orderBy: file: vm.sortReverse: vm.compareFiles "
           ng-if="!file.hidden"
-          ng-click="vm.selectFile(file)"
-          ng-dblclick="vm.commitFile(file); $event.stopPropagation();"
-          ng-class="{selected: vm.selectedFile === file}"
+          ng-click="vm.onClick($event, file)"
+          ng-right-click="vm.onRightClick($event, file)"
+          ng-dblclick="vm.commitFile($event, file)"
+          ng-class="{selected: vm.isSelected(file)}"
           ng-hide="file.inResult === false && vm.search.length > 0"
-          title="{{file.name}}&#013;{{file.path}}">
-        <td class="nameCell">
+          title="{{file.name}}&#013;{{file.path}}"
+          drop
+          on-drop="vm.onDrop(from, to)"
+          file="file"
+          context="filesFileContext">
+        <td class="nameCell"
+            ng-model="vm.selectedFiles"
+            drag
+            file="file"
+            on-drag-start="vm.onDragStart()">
           <div class="fileTypeIcon"
+              ng-style="{'background-image': vm.getIcon(file)}"
                ng-class="{'file-trans': file.type === 'transformation',
                           'file-job': file.type === 'job',
                           'file-folder': file.type === 'folder'}"></div>
@@ -57,10 +67,11 @@
             <edit value="file.name"
                   editing="file.editing"
                   on-error="vm.onError()"
-                  on-complete="vm.rename(file, current, previous, errorCallback)"
+                  on-complete="vm.rename(file, current, previous)"
                   auto="file.autoEdit"
                   on-start="vm.onStart(file)"
-                  new="file.new"></edit>
+                  new="file.new"
+                  count="vm.selectedFiles.length"></edit>
           </div>
           <div class="fileLocation">
             {{file.path}}
@@ -78,5 +89,22 @@
         </td>
       </tr>
     </table>
+  </div>
+  <div id="filesFileContext" class="context-menu">
+    <ul>
+      <li ng-click="vm.onDeleteClick()">Delete</li>
+      <li ng-click="vm.onRenameClick()" ng-show="vm.selectedFiles.length==1">Rename</li>
+      <li class="divider"></li>
+      <li ng-click="vm.onCopyStart()">Copy</li>
+      <li ng-click="vm.onCut()">Cut</li>
+      <li ng-click="vm.onPaste()" ng-show="vm.canPaste()">Paste</li>
+    </ul>
+  </div>
+  <div id="filesFolderContext" class="context-menu">
+    <ul>
+      <li ng-click="vm.onAddFolderClick()">Add Folder</li>
+      <li class="divider" ng-show="vm.canPaste()"></li>
+      <li ng-click="vm.onPasteFolder()" ng-show="vm.canPaste()">Paste</li>
+    </ul>
   </div>
 </div>

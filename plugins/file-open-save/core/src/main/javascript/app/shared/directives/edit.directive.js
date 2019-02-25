@@ -1,5 +1,5 @@
 /*!
- * Copyright 2017 Hitachi Vantara. All rights reserved.
+ * Copyright 2017-2019 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 define([
   "angular"
 ], function(angular) {
-  edit.$inject = ["$timeout", "$document"];
-
   /**
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.
    * @return {{restrict: string, scope: {onStart: string, onComplete: string, onCancel: string, new: string,
@@ -34,19 +32,38 @@ define([
         new: "<",
         value: "<",
         auto: "=",
-        editing: "="
+        editing: "=",
+        count: "<"
       },
-      template: '<span ng-click="edit()" ng-bind="updated"></span><input ng-model="updated"/>',
+      template: '<span ng-mousedown="mousedown($event)" ng-click="edit($event)" ng-mousemove="mousemove($event)" ng-bind="updated"></span><input ng-model="updated"/>',
       link: function(scope, element, attr) {
         var inputElement = element.children()[1];
         var canEdit = false;
         var willEdit = false;
+        var moved = false;
         var promise;
         scope.updated = scope.value;
         if (scope.auto) {
           edit();
         }
-        scope.edit = function() {
+        scope.$watch("value", function(value) {
+          scope.updated = value;
+        });
+        scope.$watch("editing", function(editing) {
+          if (editing) {
+            edit();
+          }
+        });
+        scope.mousedown = function(e) {
+          moved = false;
+        };
+        scope.mousemove = function(e) {
+          moved = true;
+        };
+        scope.edit = function(e) {
+          if (e.shiftKey || e.ctrlKey || e.metaKey || scope.count !== 1 || moved) {
+            return;
+          }
           if (willEdit) {
             $timeout.cancel(promise);
             willEdit = false;
@@ -123,9 +140,7 @@ define([
             scope.updated = scope.value;
           }
           if (scope.new || scope.updated !== scope.value) {
-            scope.onComplete({current: scope.updated, previous: scope.value, errorCallback: function() {
-              scope.updated = scope.value;
-            }});
+            scope.onComplete({current: scope.updated, previous: scope.value});
           } else {
             scope.onComplete(null);
           }
