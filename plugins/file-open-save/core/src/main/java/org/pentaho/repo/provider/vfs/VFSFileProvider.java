@@ -14,6 +14,7 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.repo.provider.File;
 import org.pentaho.repo.provider.FileProvider;
+import org.pentaho.repo.provider.Utils;
 import org.pentaho.repo.provider.vfs.model.VFSDirectory;
 import org.pentaho.repo.provider.vfs.model.VFSFile;
 import org.pentaho.repo.provider.vfs.model.VFSLocation;
@@ -29,7 +30,7 @@ import java.util.function.Supplier;
 public class VFSFileProvider implements FileProvider {
 
   public static final String NAME = "Environments";
-  public static final String TYPE = "VFS";
+  public static final String TYPE = "vfs";
 
   private Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
@@ -42,25 +43,30 @@ public class VFSFileProvider implements FileProvider {
   }
 
   @Override public VFSTree getTree() {
-    List<ConnectionProvider> providers =
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
       connectionManagerSupplier.get().getProvidersByType( VFSConnectionProvider.class );
 
     VFSTree vfsTree = new VFSTree( NAME );
 
-    for ( ConnectionProvider provider : providers ) {
+    for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
       for ( ConnectionDetails connectionDetails : provider.getConnectionDetails() ) {
-        VFSConnectionProvider vfsConnectionProvider = (VFSConnectionProvider) provider;
+        VFSConnectionProvider<VFSConnectionDetails> vfsConnectionProvider =
+          (VFSConnectionProvider<VFSConnectionDetails>) provider;
 
         VFSLocation vfsLocation = new VFSLocation();
         vfsLocation.setName( connectionDetails.getName() );
+        vfsLocation.setRoot( NAME );
         vfsTree.addChild( vfsLocation );
 
-        List<String> locations = vfsConnectionProvider.getLocations( (VFSConnectionDetails) connectionDetails );
+        VFSConnectionDetails vfsConnectionDetails = (VFSConnectionDetails) connectionDetails;
+
+        List<String> locations = vfsConnectionProvider.getLocations( vfsConnectionDetails );
         for ( String location : locations ) {
           VFSDirectory vfsDirectory = new VFSDirectory();
           vfsDirectory.setName( location );
           vfsDirectory.setConnection( connectionDetails.getName() );
-          vfsDirectory.setPath( vfsConnectionProvider.getKey() + "://" + location );
+          vfsDirectory.setPath( vfsConnectionProvider.getProtocol( vfsConnectionDetails ) + "://" + location );
+          vfsDirectory.setRoot( NAME );
           vfsLocation.addChild( vfsDirectory );
         }
       }
@@ -69,7 +75,7 @@ public class VFSFileProvider implements FileProvider {
     return vfsTree;
   }
 
-  public List<File> getFiles( String name, String path ) {
+  public List<File> getFiles( String name, String path, String filters ) {
     List<File> files = new ArrayList<>();
     try {
       FileObject fileObject = KettleVFS.getFileObject( path, new Variables(), VFSHelper.getOpts( path, name ) );
@@ -83,18 +89,20 @@ public class VFSFileProvider implements FileProvider {
             vfsDirectory.setName( child.getName().getBaseName() );
             vfsDirectory.setPath( child.getName().getFriendlyURI() );
             vfsDirectory.setConnection( name );
+            vfsDirectory.setRoot( NAME );
             files.add( vfsDirectory );
           } else {
-            VFSFile vfsFile = new VFSFile();
-            vfsFile.setName( child.getName().getBaseName() );
-            vfsFile.setPath( child.getName().getFriendlyURI() );
-            vfsFile.setConnection( name );
-            files.add( vfsFile );
+            if ( Utils.matches( child.getName().getBaseName(), filters ) ) {
+              VFSFile vfsFile = new VFSFile();
+              vfsFile.setName( child.getName().getBaseName() );
+              vfsFile.setPath( child.getName().getFriendlyURI() );
+              vfsFile.setConnection( name );
+              vfsFile.setRoot( NAME );
+              files.add( vfsFile );
+            }
           }
         }
       }
-
-      System.out.println( fileObject );
     } catch ( KettleFileException | FileSystemException kfe ) {
       // Do something smart here
     }

@@ -49,7 +49,8 @@ define(
         getFields: getFields,
         createConnection: createConnection,
         getConnection: getConnection,
-        help: help
+        help: help,
+        testConnection: testConnection
       };
 
       function getTypes() {
@@ -62,6 +63,10 @@ define(
 
       function createConnection(connection) {
         return helperService.httpPut([baseUrl, "connection"].join("/"), connection);
+      }
+
+      function testConnection(connection) {
+        return helperService.httpPost([baseUrl, "test"].join("/"), connection);
       }
 
       function getConnection(name) {

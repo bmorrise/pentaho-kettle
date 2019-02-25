@@ -35,10 +35,10 @@ public class CombinedBrowserController {
     return trees;
   }
 
-  public List<? extends File> getFiles( String type, String connection, String path ) {
+  public List<? extends File> getFiles( String type, String connection, String path, String filters ) {
     FileProvider fileProvider = getFileProvider( type );
     if ( fileProvider != null && fileProvider.isAvailable() ) {
-      return fileProvider.getFiles( connection, path );
+      return fileProvider.getFiles( connection, path, filters );
     }
     return Collections.emptyList();
   }

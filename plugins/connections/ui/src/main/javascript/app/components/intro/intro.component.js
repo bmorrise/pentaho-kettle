@@ -23,23 +23,21 @@ define([
     vm.type = null;
 
     function onInit() {
-      vm.newVfsConnection = i18n.get('connections.intro.label');
       vm.connectionName = i18n.get('connections.connectionname.label');
       vm.connectionType = "Connection type";
+      vm.connectionDescription = "Description";
       vm.nextLabel = "Next";
       vm.next = "/";
 
-      // vm.errorMessage = {
-      //   message: "An error has occurred"
-      // };
-
       if ($stateParams.data) {
+        vm.title = "Edit VFS Connection";
         vm.data = $stateParams.data;
         vm.type = vm.data.model.type;
-        vm.next = vm.data.model.type+"step1";
+        vm.next = vm.data.model.type + "step1";
       } else {
+        vm.title = i18n.get('connections.intro.label');
         vm.data = {
-          name: null
+          model: null
         }
       }
       var connection = $location.search().connection;
@@ -48,27 +46,30 @@ define([
         vm.type = vm.data.type.value;
       }
       if (connection) {
-        dataService.getConnection(connection).then(function(res) {
+        dataService.getConnection(connection).then(function (res) {
           var model = res.data;
           vm.type = model.type;
-          vm.data.name = model.name;
           vm.data.model = model;
-          vm.next = vm.data.model.type+"step1";
+          vm.next = vm.data.model.type + "step1";
         });
       }
     }
 
     function onSelect(option) {
       if (!vm.data.model || vm.data.model.type !== option.value) {
-        dataService.getFields(option.value).then(function(res) {
+        dataService.getFields(option.value).then(function (res) {
+          var name = vm.data.model.name;
+          var description = vm.data.model.description;
           vm.data.model = res.data;
-          vm.next = vm.data.model.type+"step1";
+          vm.data.model.name = name;
+          vm.data.model.description = description;
+          vm.next = vm.data.model.type + "step1";
         });
       }
     }
 
     function canNext() {
-      return vm.data.name && vm.data.model;
+      return vm.data.model && vm.data.model.type && vm.data.model.name;
     }
   }
 

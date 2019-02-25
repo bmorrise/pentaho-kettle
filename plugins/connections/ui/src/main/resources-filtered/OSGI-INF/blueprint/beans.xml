@@ -34,6 +34,8 @@
              interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
              availability="optional"/>
 
+  <bean id="ConnectionDelegate" scope="singleton" class="org.pentaho.di.connections.ui.ConnectionDelegate" />
+
   <bean id="VFSConnectionTreeDelegateExtension" scope="singleton"
         class="org.pentaho.di.connections.ui.ConnectionTreeDelegateExtension">
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
@@ -41,6 +43,13 @@
 
   <bean id="VFSConnectionPopupMenuExtension" scope="singleton"
         class="org.pentaho.di.connections.ui.ConnectionPopupMenuExtension">
+    <argument ref="ConnectionDelegate" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
+  </bean>
+
+  <bean id="ConnectionViewTreeExtension" scope="singleton"
+        class="org.pentaho.di.connections.ui.ConnectionViewTreeExtension">
+    <argument ref="ConnectionDelegate" />
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 

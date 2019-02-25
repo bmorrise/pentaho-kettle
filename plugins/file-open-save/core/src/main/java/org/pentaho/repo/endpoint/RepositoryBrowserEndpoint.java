@@ -63,8 +63,8 @@ public class RepositoryBrowserEndpoint {
   @Path( "/getFiles" )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response loadDirectoryTree( @QueryParam( "type" ) String type, @QueryParam( "connection" ) String connection,
-                                     @QueryParam( "path" ) String path ) {
-    return Response.ok( combinedBrowserController.getFiles( type, connection, path ) ).build();
+                                     @QueryParam( "path" ) String path, @QueryParam( "filters" ) String filters ) {
+    return Response.ok( combinedBrowserController.getFiles( type, connection, path, filters ) ).build();
   }
 
   @GET

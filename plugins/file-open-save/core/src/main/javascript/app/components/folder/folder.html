@@ -1,25 +1,13 @@
 <resize-folders/>
-<!--<div ng-if="!vm.state.is('selectFolder')" class="folder recents empty"-->
-     <!--ng-class="{selected: vm.showRecents}"-->
-     <!--ng-click="vm.selectFolder(null)"-->
-     <!--ng-style="{width: vm.width === 0 ? 'auto' : vm.width + 'px'}">-->
-  <!--<div class="folderArrowWrapper">-->
-    <!--<div class="folderArrow"></div>-->
-  <!--</div>-->
-  <!--<div class="folderImage"></div>-->
-  <!--<div class="folderName">-->
-    <!--Recents-->
-  <!--</div>-->
-<!--</div>-->
 <script type="text/ng-template" id="tree_item.html">
   <div ng-if="!folder.hidden" id="{{folder.path}}"
       class="folder"
       ng-click="vm.selectFolder(folder)"
       ng-dblclick="vm.selectAndOpenFolder(folder)"
-      ng-class="{recents: folder.action === 'recents',
-                 local: folder.action === 'local',
-                 repository: folder.action ==='root',
-                 environments: folder.action ==='environments',
+      ng-class="{recents: folder.provider === 'recents',
+                 local: folder.provider === 'local' && !folder.root,
+                 repository: folder.provider ==='repository' && !folder.root,
+                 environments: folder.provider ==='vfs' && !folder.root,
                  home: folder.path === '/home' && folder.action === 'Repository',
                  public: folder.path === '/public' && folder.action === 'Repository',
                  selected: folder === vm.selectedFolder,

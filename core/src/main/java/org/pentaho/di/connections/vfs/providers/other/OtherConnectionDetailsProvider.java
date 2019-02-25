@@ -68,5 +68,13 @@ public class OtherConnectionDetailsProvider implements VFSConnectionProvider<Oth
   public String getKey() {
     return SCHEME;
   }
+
+  @Override public String getProtocol( OtherConnectionDetails vfsConnectionDetails ) {
+    return vfsConnectionDetails.getProtocol();
+  }
+
+  @Override public boolean test( OtherConnectionDetails connectionDetails ) {
+    return true;
+  }
 }
 

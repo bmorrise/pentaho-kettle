@@ -1,5 +1,6 @@
 package org.pentaho.di.connections.ui;
 
+import org.eclipse.swt.SWT;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.ui.spoon.Spoon;
 
@@ -22,14 +23,17 @@ public class ConnectionDelegate {
 
   public void openDialog( String label ) {
     ConnectionDialog connectionDialog = new ConnectionDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    connectionDialog.open( "New VFS Connection", label );
+    connectionDialog.open( "Edit VFS Connection", label );
   }
 
   public void delete( String label ) {
-    ConnectionManager connectionManager = ConnectionManager.getInstance();
-    connectionManager.delete( label );
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () -> spoonSupplier.get().refreshTree(
-      ConnectionFolderProvider.STRING_VFS_CONNECTIONS ) );
+    ConnectionDeleteDialog connectionDeleteDialog = new ConnectionDeleteDialog( spoonSupplier.get().getShell() );
+    if ( connectionDeleteDialog.open( label ) == SWT.YES ) {
+      ConnectionManager connectionManager = ConnectionManager.getInstance();
+      connectionManager.delete( label );
+      spoonSupplier.get().getShell().getDisplay().asyncExec( () -> spoonSupplier.get().refreshTree(
+        ConnectionFolderProvider.STRING_VFS_CONNECTIONS ) );
+    }
   }
 
 }

@@ -9,7 +9,7 @@
 .error-message {
   border: 1px solid #f3E085;
   background-color: #fcf8e3;
-  width: 580px;
+  width: calc(100% - 46px);
   height: 63px;
   border-radius: 5px;
   position: absolute;
@@ -20,7 +20,7 @@
 }
 
 .error-message-text {
-  width: 460px;
+  /*width: 460px;*/
   float: left;
   margin-top: 13px;
   margin-left: 15px;

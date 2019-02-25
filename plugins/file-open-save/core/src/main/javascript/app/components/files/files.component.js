@@ -68,6 +68,7 @@ define([
    */
   function filesController(dt, $timeout) {
     var vm = this;
+    var extensions = ['dsn', 'ph', 'config', 'aze', 'rom', 'bowerrc', 'ktr', 'ini', 'kts', 'p7b', 'docm', 'rtf', 'rub', 'ico', 'vmdk', 'pyc', 'wsf', 'deb', 'cal', 'ra', 'tcsh', 'txt', 'kt', 'xcf', 'coffeelintignore', '3ga', 'eot', 'handlebars', 'pub', 'rar', 'bpg', 'docx', 'img', 'pom', 'ott', 'rb', 'ru', 'xml', 'ace', 'gitattributes', 'js', 'j2', 'ibooks', 'vox', 'jsp', '3g2', 'py', 'sass', 'java', 'raw', 'codekit', 'webm', 'kup', 'master', 'enc', 'otf', 'cptx', 'plist', 'po', 'step', 'bash', 'xlm', 'sql', 'ocx', 'ttf', 'crdownload', 'el', 'map', '3gp', 'pm', 'dgn', 'tar', 'lex', 'tiff', 'nix', 'conf', 'lisp', 'eml', 'tmp', 'pl', 'blank', 'scss', 'in', 'compile', 'cpp', 'mpeg', 'au', 'f4v', 'dot', 'vss', 'doc', 'dng', 'vsd', 'zip', 'lock', 'pgp', 'bz2', 'wav', 'yml', 'gdp', 'rsa', 'rpm', 'json', 'key', 'pst', 'asmx', 'vscodeignore', 'ash', 'ac', 'zsh', 'aif', 'csh', 'm4', 'msg', 'accdt', 'aa', 'dll', 'cer', 'mkv', 'xps', 'tfignore', 'applescript', 'flac', 'wmv', 'rst', 'wma', 'pkg', 'xaml', 'download', 'pem', 'm3u8', 'licx', 'kjb', 'resx', 'tga', 'dbf', 'jar', 'asax', 'sol', 'retry', 'app', 'accdb', 'm', 'vdx', 'csproj', 'fb2', 'z', 'mc', 'ogv', 'dwg', 'xfl', 'tpl', 'fnt', 'msu', 'asx', 'psd', 'idx', 'coffee', 'wbk', 'iff', 'gif', 'bzempty', 'cfm', 'cgi', 'xsl', 'indd', 'dist', 'ts', 'vst', 'class', 'sys', 'h', 'tsv', 'md', 'ds_store', 'hlp', 'fax', 'ost', 'phar', 'ps1', 'psp', 'lnk', 'rdl', 'bak', 'eps', 'lua', 'war', 'p12', 'rss', 'wmf', 'heic', 'gpg', 'info', 'gadget', 'tex', 'asm', 'vdi', 'ogg', 'ait', 'me', 'jpeg', 'mpa', 'pages', 'vb', 'htm', 'icns', 'pdb', 'ppsx', 'cfml', 'woff2', 'pid', 'sldm', 'image', '7z', 'midi', 'mi', 'stl', 'xlsm', 'mk', 'csv', 'xlsx', 'mp4', 'asc', 'ascx', 'bmp', 'pps', 'sldx', 'dart', 'reg', 'aifc', 'sqlite', 'ksh', 'xspf', 'default', 'dat', 'vsx', 'mdf', 'm2v', 'mpt', 'part', 'ai', 'svg', 'ods', 'cr2', 'fon', 'swp', 'css', 'mpp', 'mpg', 'asf', 'mdb', 'xsd', 'gpl', 'rdf', 'iso', 'rpt', 'php', 'gem', 'aiff', 'code-workspace', 'ifo', 'webinfo', 'mid', 'tgz', 'xpi', 'asp', 'apk', 'tif', 'adn', 'cs', 'cd', 'mo', 'mpga', 'crypt', 'swf', 'swd', 'fla', 'odt', 'flv', 'mm', 'crt', 'dxf', 'mp2', 'c', 'mpd', 'browser', 'dmg', 'm3u', 'chm', 'sln', 'editorconfig', 'epub', 'pfx', 'twig', 'pdf', 'eslintignore', 'bat', 'log', 'cson', 'kf8', 'ppt', 'xrb', 'cfg', 'woff', 'xz', 'mpe', 'vbproj', 'mp3', 'msi', 'odb', 'hbs', 'dtd', 'ani', 'amr', 'xlt', 'sitemap', 'yaml', 'cad', 'axd', 'skin', 'iml', 'pcd', 'inv', 'dotm', 'bin', 'mov', 'ova', 'm4a', 'm4v', 'aspx', 'jpe', 'catalog', 'dpj', 'hs', 'jpg', 'vbs', 'cmd', 'mng', 'sed', 'dotx', 'elf', 'less', 'udf', 'lit', 'ics', 'swift', 'inc', 'nfo', 'data', 'ram', 'gitignore', 'cdda', 'caf', 'html', 'com', 'vob', 'torrent', 'potx', 'xltm', 'db', 'avi', 'qt', 'hsl', 'cab', 'tax', 'ovf', 'wps', 'npmignore', 'pptx', 'prop', 'inf', 'docb', 'nef', 'ashx', 'sit', 'jsx', 'go', 'vcs', 'xls', 'vcd', 'aac', 'gz', 'vcf', 'tmx', 'vtx', 'm4r', 'sh', 'ps', 'sdf', 'folder', 'sphinx', 'kmk', 'webp', 'nes', 'png', 'pot', 'exe', 'mobi', 'pptm', 'gradle', 'mod', 'aup', 'rm', 'diz', 'cur', 'xltx', 'cue'];
     vm.$onInit = onInit;
     vm.$onChanges = onChanges;
     vm._name = "name";
@@ -79,7 +80,7 @@ define([
     vm.sortFiles = sortFiles;
     vm.compareFiles = compareFiles;
     vm.onStart = onStart;
-    vm.getExtension = getExtension;
+    vm.getIcon = getIcon;
 
     /**
      * The $onInit hook of components lifecycle which is called on each controller
@@ -109,15 +110,20 @@ define([
       }
     }
 
+    function getIcon(file) {
+      return 'url(\'./img/types/'+getExtension(file)+'.svg\')';
+    }
+
     function getExtension(file) {
-      if (file.extension) {
-        return file.extension.substr(1, file.extension.length);
-      }
       if (file.type === "folder") {
         return "folder";
       }
-      var index = file.name.lastIndexOf(".");
-      return file.name.substr(index + 1, file.name.length);
+      var extension = file.extension ? file.extension.substr(1, file.extension.length) : "";
+      if (!extension) {
+        var index = file.name.lastIndexOf(".");
+        extension = file.name.substr(index + 1, file.name.length);
+      }
+      return extensions.indexOf(extension) === -1 ? "blank" : extension;
     }
 
     /**

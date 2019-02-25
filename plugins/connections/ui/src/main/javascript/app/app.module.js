@@ -37,12 +37,13 @@ define([
   "./components/selectbox/selectbox.component",
   "./components/controls/controls.component",
   "./components/error/error.component",
+  "./components/help/help.component",
   "./directives/focus.directive",
   "./service/helper.service",
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, plugins, appConfig, appAnimation, introComponent, summaryComponent, creatingComponent, finalComponent, selectboxComponent, controlsComponent, errorComponent, focusDirective, helperService, dataService) {
+], function (angular, plugins, appConfig, appAnimation, introComponent, summaryComponent, creatingComponent, finalComponent, selectboxComponent, controlsComponent, errorComponent, helpComponent, focusDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -63,7 +64,7 @@ define([
 
     var deps = ['ui.router', 'ngAnimate'];
     var types = [];
-    plugins.map(function(item) {
+    plugins.map(function (item) {
       deps.push(item.name);
       types.push({
         value: item.scheme,
@@ -75,25 +76,27 @@ define([
       function getTypes() {
         return types;
       }
+
       return {
         $get: getTypes
       }
     }
 
     angular.module(module.name, deps)
-      .component(introComponent.name, introComponent.options)
-      .component(summaryComponent.name, summaryComponent.options)
-      .component(creatingComponent.name, creatingComponent.options)
-      .component(finalComponent.name, finalComponent.options)
-      .component(selectboxComponent.name, selectboxComponent.options)
-      .component(controlsComponent.name, controlsComponent.options)
-      .component(errorComponent.name, errorComponent.options)
-      .directive(focusDirective.name, focusDirective.options)
-      .service(helperService.name, helperService.factory)
-      .service(dataService.name, dataService.factory)
-      .animation(appAnimation.class, appAnimation.factory)
-      .provider('vfsTypes', vfsTypeProvider)
-      .config(appConfig);
+        .component(introComponent.name, introComponent.options)
+        .component(summaryComponent.name, summaryComponent.options)
+        .component(creatingComponent.name, creatingComponent.options)
+        .component(finalComponent.name, finalComponent.options)
+        .component(selectboxComponent.name, selectboxComponent.options)
+        .component(controlsComponent.name, controlsComponent.options)
+        .component(errorComponent.name, errorComponent.options)
+        .component(helpComponent.name, helpComponent.options)
+        .directive(focusDirective.name, focusDirective.options)
+        .service(helperService.name, helperService.factory)
+        .service(dataService.name, dataService.factory)
+        .animation(appAnimation.class, appAnimation.factory)
+        .provider('vfsTypes', vfsTypeProvider)
+        .config(appConfig);
   }
 
   /**
@@ -102,7 +105,7 @@ define([
    * @param {DOMElement} element - The DOM element
    */
   function bootstrap(element) {
-    angular.element(element).ready(function() {
+    angular.element(element).ready(function () {
       angular.bootstrap(element, [module.name], {
         strictDi: true
       });

@@ -31,14 +31,13 @@
 define([
   "angular",
   "./services/data.service",
-  "./services/vfs.service",
   "./services/file.service",
-  "./services/repository.service",
+  "./services/folder.service",
   "text!./app.html",
   "pentaho/i18n-osgi!file-open-save.messages",
   "./components/utils",
   "css!./app.css"
-], function (angular, dataService, vfsService, fileService, repositoryService, template, i18n, utils) {
+], function (angular, dataService, fileService, folderService, template, i18n, utils) {
   "use strict";
 
   var options = {
@@ -50,9 +49,8 @@ define([
 
   appController.$inject = [
     dataService.name,
-    vfsService.name,
     fileService.name,
-    repositoryService.name,
+    folderService.name,
     "$location", "$scope", "$timeout", "$state"];
 
   /**
@@ -65,14 +63,13 @@ define([
    * @param {Object} $scope - Application model
    * @param {Object} $timeout - Angular wrapper around window.setTimeout
    */
-  function appController(dt, vfs, fs, repository, $location, $scope, $timeout, $state) {
+  function appController(dt, fs, folderService, $location, $scope, $timeout, $state) {
     var vm = this;
     vm.$onInit = onInit;
     vm.openFolder = openFolder;
     vm.selectFolder = selectFolder;
     vm.selectFile = selectFile;
     vm.selectFolderByPath = selectFolderByPath;
-    vm.doSearch = doSearch;
     vm.addFolder = addFolder;
     vm.openClicked = openClicked;
     vm.saveClicked = saveClicked;
@@ -115,11 +112,6 @@ define([
     var checkInterval;
     var start;
 
-    var services = [];
-    services["vfs"] = vfs;
-    services["localfile"] = vfs;
-    services["repository"] = repository;
-
     /**
      * The $onInit hook of components lifecycle which is called on each controller
      * after all the controllers on an element have been constructed and had their
@@ -151,22 +143,18 @@ define([
       vm.filename = $location.search().filename;
       vm.fileType = $location.search().fileType;
       vm.origin = $location.search().origin;
+      vm.filters = $location.search().filters;
       vm.tree = [
-        {name: "Recents", action: "recents", hasChildren: false}
+        {name: "Recents", hasChildren: false, provider: "recents"}
       ];
       $timeout(function () {
-        if ($state.is('open')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.open.title");
-        }
-        if ($state.is('save')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.save.title");
-        }
-        if ($state.is('selectFolder')) {
-          vm.headerTitle = i18n.get("file-open-save-plugin.app.header.select.title");
-        }
+        var state = $state.current.name;
+        vm.headerTitle = i18n.get("file-open-save-plugin.app.header." + state + ".title");
         if (!$state.is('selectFolder')) {
           dt.getDirectoryTree($location.search().filter).then(_populateTree);
-          //dt.getRecentFiles().then(_populateRecentFiles);
+          dt.getRecentFiles().then(_populateRecentFiles);
+          vm.showRecents = true;
+          vm.folder = vm.tree[0];
         } else {
           dt.getDirectoryTree("false").then(_populateTree);
         }
@@ -183,7 +171,6 @@ define([
      */
     function _populateTree(response) {
       vm.tree = vm.tree.concat(response.data);
-      console.log(vm.tree);
       var path = $location.search().path;
       if (path) {
         vm.autoExpand = true;
@@ -196,7 +183,6 @@ define([
             selectFolderByPath("/");
           }
         }
-        vm.showRecents = true;
       }
       // dt.getCurrentRepo().then(function(response) {
       //   vm.currentRepo = response.data.name;
@@ -253,14 +239,11 @@ define([
     }
 
     function openFolder(folder, callback) {
-      var service = services[folder.action.toLowerCase()];
-      if (service) {
-        service.selectFolder(folder, function () {
-          if (callback) {
-            callback();
-          }
-        });
-      }
+      folderService.openFolder(folder, function() {
+        if (callback) {
+          callback();
+        }
+      })
     }
 
     /**
@@ -276,21 +259,21 @@ define([
       }
       _resetFileAreaMessage();
       vm.file = null;
-      if (folder === vm.folder) {
-        return;
-      }
-      vm.folder = folder;
-      vm.showRecents = false;
-      var service = services[folder.action.toLowerCase()];
-      if (service) {
-        vm.fileLoading = true;
-        service.selectFolder(vm.folder, function () {
-          vm.fileLoading = false;
-          _updateDisplay(vm.folder);
-          if (callback) {
-            callback();
-          }
-        });
+      if (folder !== vm.folder) {
+        vm.folder = folder;
+        vm.showRecents = false;
+        if (folder.provider === "recents") {
+          vm.showRecents = true;
+        } else {
+          vm.fileLoading = true;
+          folderService.selectFolder(folder, vm.filters, function() {
+            vm.fileLoading = false;
+            _updateDisplay(vm.folder);
+            if (callback) {
+              callback();
+            }
+          });
+        }
       }
     }
 
@@ -306,10 +289,10 @@ define([
      * @param {String} path - path to file
      */
     function selectFolderByPath(path) {
-      var folder = _findFolderByPath(path);
+      var folder = folderService.findFolderByPath(vm.tree, vm.folder, path);
       if (folder) {
         $timeout(function () {
-          vm.folder = folder;
+          selectFolder(folder);
         });
       }
     }
@@ -334,132 +317,6 @@ define([
         return vm.searchResults;
       }
       return vm.folder.children;
-    }
-
-    /**
-     * Calls a filter for either recent files or files/folders in current folder
-     */
-    function doSearch(searchValue) {
-      if (searchValue) {
-        _initSearch();
-        start = (new Date()).getTime();
-        if (vm.showRecents === true) {
-          selectFolder(vm.tree.children[0], function () {
-            $timeout(function () {
-              _doSearch(searchValue);
-            })
-          });
-        } else {
-          _doSearch(searchValue);
-        }
-      } else {
-        _clearSearch();
-        _setSearchState();
-      }
-    }
-
-    function _setSearchState() {
-      if (isPentahoRepo() && vm.searchString === "" && vm.selectedFolder === "/") {
-        vm.showRecents = true;
-        vm.folder = {name: "Recents", path: "Recents"};
-        vm.selectedFolder = vm.folder.name;
-        _resetFileAreaMessage();
-      } else if (vm.searchString === "") {
-        _resetFileAreaMessage();
-      }
-    }
-
-    function _initSearch() {
-      vm.searchResults = [];
-      searchPaths = [];
-      currentSearches = [];
-    }
-
-    function _completeSearch() {
-      clearInterval(searchInterval);
-      clearInterval(checkInterval);
-      $timeout(function () {
-        vm.searching = false;
-      });
-    }
-
-    /**
-     * Resets the search string and runs search against that string (which returns normal dir structure).
-     */
-    function _clearSearch() {
-      dt.cancelSearch();
-      _completeSearch();
-      vm.searchResults = [];
-      vm.searchString = "";
-      _resetFileAreaMessage();
-    }
-
-    function _doSearch(searchValue) {
-      vm.searching = true;
-      vm.showMessage = true;
-      vm.searchString = searchValue;
-      _setFileAreaMessage();
-      _loadSearchPaths(vm.folder, searchValue);
-      searchInterval = setInterval(function () {
-        if (currentSearches.length <= maxSearching) {
-          var path = searchPaths.pop();
-          if (path) {
-            _loadSearchResults(path, searchValue);
-          }
-        }
-      });
-      checkInterval = setInterval(function () {
-        if (currentSearches.length === 0) {
-          _completeSearch();
-        }
-      }, 1000);
-    }
-
-    function _loadSearchPaths(folder, searchValue) {
-      dt.search(folder.path, searchValue).then(function (response) {
-        vm.searchResults = vm.searchResults.concat(response.data);
-        if (vm.searchResults.length > 0) {
-          vm.showMessage = false;
-        }
-      });
-      for (var i = 0; i < folder.children.length; i++) {
-        if (folder.children[i].type === "folder") {
-          searchPaths.push(folder.children[i].path);
-        }
-      }
-    }
-
-    function _loadSearchResults(path, searchValue) {
-      currentSearches.push(path);
-      dt.getFolders(path).then(function (response) {
-        _loadSearchPaths(response.data, searchValue);
-        var index = currentSearches.indexOf(path);
-        currentSearches.splice(index, 1);
-      }, function () {
-        var index = currentSearches.indexOf(path);
-        currentSearches.splice(index, 1);
-      });
-    }
-
-    /**
-     * Recursively searches for the value in elements and any of its children
-     *
-     * @param {Object} elements - Object with files and folders
-     * @param {String} value - String used to search within elements
-     * @private
-     */
-    function _filter(elements, value) {
-      if (elements) {
-        for (var i = 0; i < elements.length; i++) {
-          var name = elements[i].name.toLowerCase();
-          var inResult = name.indexOf(value.toLowerCase()) !== -1;
-          vm.showMessage = inResult ? false : vm.showMessage;
-          elements[i].inResult = inResult;
-          if (elements[i].children.length > 0) {
-            _filter(elements[i].children, value);
-          }
-        }
-      }
     }
 
     /**
@@ -517,7 +374,6 @@ define([
      * @private
      */
     function _open(file) {
-      console.log(file);
       try {
         if (vm.selectedFolder === "Recents" && vm.origin === "spoon") {
           dt.openRecent(file.repository + ":" + (file.username ? file.username : ""),
@@ -538,7 +394,8 @@ define([
             _triggerError(16);
           });
         } else {
-          dt.openFile(file.objectId.id, file.type, file.path).then(function (response) {
+          var objectId = file.objectId ? file.objectId.id : null;
+          dt.openFile(objectId, file.type, file.path).then(function (response) {
             _closeBrowser();
           });
         }
@@ -672,7 +529,7 @@ define([
      * @return {boolean} - True if no folder is selected or if Recents is selected, false otherwise
      */
     function addDisabled() {
-      return addDeleteDisabled() || vm.searchString !== "";
+      return false;//addDeleteDisabled() || vm.searchString !== "";
     }
 
     /**
@@ -681,35 +538,7 @@ define([
      * or if root folder/file is selected, false otherwise
      */
     function deleteDisabled() {
-      return addDeleteDisabled() || isRoot();
-    }
-
-    /**
-     * Determines if add or delete button is to be disabled
-     * @return {boolean} - True if no folder is selected, if Recents is selected, or if a message is showing.
-     * False otherwise
-     */
-    function addDeleteDisabled() {
-      return (vm.folder === null || vm.folder.path === "Recents" || vm.showMessage);
-    }
-
-    /**
-     * Determines if (selected folder is a root folder according to repository type AND if no file is selected) OR
-     * if the selected file is a root folder
-     * @return {boolean} - True if root folder is selected and no file is selected, false otherwise
-     */
-    function isRoot() {
-      var isFileNull = vm.file === null;
-      if (isPentahoRepo()) {
-        if (isFileNull) {
-          return vm.folder.path === "/home" || vm.folder.path === "/home/admin" || vm.folder.path === "/";
-        }
-        return vm.file.type === "folder" && (vm.file.path === "/home" || vm.file.path === "/home/admin");
-      }
-      if (isFileNull) {
-        return vm.folder.path === "/";
-      }
-      return vm.file.type === "folder" && vm.file.path === "/";
+      return false;//addDeleteDisabled() || isRoot();
     }
 
     /**
@@ -743,35 +572,6 @@ define([
       }
       return null;
     }
-
-    function _findFolderByPath(path) {
-      path = path === "/" ? "" : path;
-      var parts = path.split("/");
-      var folder = _findFolder(vm.tree, parts, 0);
-      return folder;
-    }
-
-    function _findFolder(children, parts, index) {
-      for (var i = 0; i < children.length; i++) {
-        console.log(children[i]);
-        if (children[i].name === parts[index]) {
-          if (index < parts.length - 1) {
-            return _findFolder(children[i].children, parts, ++index);
-          } else {
-            return children[i];
-          }
-        }
-      }
-
-      var folder = {name: parts[index], path: parts.slice(0, index + 1).join("/"), children: []};
-      children.push(folder);
-      if (index < parts.length - 1) {
-        return _findFolder(folder.children, parts, ++index);
-      } else {
-        return folder;
-      }
-    }
-
 
     /**
      * Calls the service for removing the file
@@ -1020,12 +820,12 @@ define([
      */
     function isShowRecents() {
       if (vm.recentFiles) {
-        return !vm.showMessage && vm.showRecents && vm.recentFiles.length > 0 && !$state.is('selectFolder') && !state.is('selectFile');
+        return !vm.showMessage && vm.showRecents && vm.recentFiles.length > 0 && !$state.is('selectFolder') && !$state.is('selectFile');
       }
     }
 
     function getPath(folder) {
-      console.log(folder);
+      return folderService.getPath(folder);
     }
   }
 

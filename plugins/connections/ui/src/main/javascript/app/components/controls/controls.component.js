@@ -8,12 +8,14 @@ define([
 
   var options = {
     bindings: {
+      test: "<",
       back: "<",
       next: "<",
       finish: "<",
       close: "<",
       data: "<",
-      canNext: "<"
+      canNext: "<",
+      onTest: "&"
     },
     controllerAs: "vm",
     template: template,
@@ -28,10 +30,12 @@ define([
     vm.onNext = onNext;
     vm.onFinish = onFinish;
     vm.onClose = onClose;
+    vm.onTestClick = onTestClick;
     vm.backLabel = "Back";
     vm.nextLabel = "Next";
     vm.finishLabel = "Finish";
     vm.closeLabel = "Close";
+    vm.testLabel = "Test";
     vm.$onInit = onInit;
 
     function onInit() {
@@ -51,6 +55,10 @@ define([
 
     function onClose() {
       close();
+    }
+
+    function onTestClick() {
+      vm.onTest();
     }
   }
 

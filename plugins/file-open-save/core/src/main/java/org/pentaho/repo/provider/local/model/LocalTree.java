@@ -1,6 +1,7 @@
 package org.pentaho.repo.provider.local.model;
 
 import org.pentaho.repo.provider.Tree;
+import org.pentaho.repo.provider.local.LocalFileProvider;
 import org.pentaho.repo.provider.vfs.model.VFSLocation;
 
 import java.util.ArrayList;
@@ -11,17 +12,15 @@ import java.util.List;
  */
 public class LocalTree implements Tree<LocalFile> {
 
-  public static final String ACTION = "local";
+  @Override public String getProvider() {
+    return LocalFileProvider.TYPE;
+  }
 
   private List<LocalFile> localFiles = new ArrayList<>();
   private String name;
 
   public LocalTree( String name ) {
     this.name = name;
-  }
-
-  public String getAction() {
-    return ACTION;
   }
 
   @Override public String getName() {

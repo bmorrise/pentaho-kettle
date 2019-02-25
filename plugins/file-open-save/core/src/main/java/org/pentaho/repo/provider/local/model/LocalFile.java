@@ -1,6 +1,7 @@
 package org.pentaho.repo.provider.local.model;
 
 import org.pentaho.repo.provider.File;
+import org.pentaho.repo.provider.local.LocalFileProvider;
 
 import java.util.Date;
 
@@ -10,12 +11,12 @@ import java.util.Date;
 public class LocalFile implements File {
 
   public static final String TYPE = "file";
-  public static final String ACTION = "localfile";
 
   private String name;
   private String path;
   private String parent;
   private Date date;
+  private String root;
 
   @Override public String getName() {
     return name;
@@ -33,8 +34,8 @@ public class LocalFile implements File {
     return TYPE;
   }
 
-  @Override public String getAction() {
-    return ACTION;
+  @Override public String getProvider() {
+    return LocalFileProvider.TYPE;
   }
 
   public void setName( String name ) {
@@ -55,5 +56,13 @@ public class LocalFile implements File {
 
   public void setDate( Date date ) {
     this.date = date;
+  }
+
+  @Override public String getRoot() {
+    return root;
+  }
+
+  public void setRoot( String root ) {
+    this.root = root;
   }
 }

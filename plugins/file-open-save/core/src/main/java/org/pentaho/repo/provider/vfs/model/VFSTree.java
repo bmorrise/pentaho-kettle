@@ -10,14 +10,14 @@ import java.util.List;
  */
 public class VFSTree implements Tree<VFSLocation> {
 
-  public static final String ACTION = "environments";
+  public static final String PROVIDER = "vfs";
 
   public VFSTree( String name ) {
     this.name = name;
   }
 
-  public String getAction() {
-    return ACTION;
+  public String getProvider() {
+    return PROVIDER;
   }
 
   private String name;

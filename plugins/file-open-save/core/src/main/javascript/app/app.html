@@ -28,7 +28,7 @@
         </div>
       </div>
       <div ng-hide="vm.searchString" class="breadcrumbSection">
-        <breadcrumb path="vm.folder.path"
+        <breadcrumb path="vm.getPath(vm.folder)"
             include-root="vm.includeRoot"
             on-select="vm.selectFolderByPath(selectedPath)">
         </breadcrumb>

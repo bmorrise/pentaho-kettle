@@ -23,18 +23,19 @@
 package org.pentaho.repo.provider.repository.model;
 
 import org.pentaho.repo.provider.File;
+import org.pentaho.repo.provider.repository.RepositoryFileProvider;
 
 /**
  * Created by bmorrise on 5/16/17.
  */
 public class RepositoryFile extends RepositoryObject implements File {
 
-  public static final String ACTION = "Repository";
   public static final String TRANSFORMATION = "transformation";
   public static final String JOB = "job";
   public static final String KTR = ".ktr";
   public static final String KJB = ".kjb";
   private String username;
+  private String root;
 
   @Override public String getType() {
     return this.type;
@@ -44,9 +45,7 @@ public class RepositoryFile extends RepositoryObject implements File {
     this.type = type;
   }
 
-  @Override public String getAction() {
-    return ACTION;
-  }
+
 
   public String getUsername() {
     return username;
@@ -64,6 +63,7 @@ public class RepositoryFile extends RepositoryObject implements File {
     repositoryFile.setExtension( repositoryObject.getObjectType().getExtension() );
     repositoryFile.setDate( repositoryObject.getModifiedDate() );
     repositoryFile.setPath( repositoryObject.getRepositoryDirectory().getPath() );
+    repositoryFile.setRoot( RepositoryFileProvider.NAME );
 
     return repositoryFile;
   }
@@ -79,6 +79,7 @@ public class RepositoryFile extends RepositoryObject implements File {
     repositoryFile1.setDate( repositoryFile.getLastModifiedDate() );
     repositoryFile1.setPath( parentPath );
     repositoryFile1.setHidden( repositoryFile.isHidden() && !isAdmin );
+    repositoryFile1.setRoot( RepositoryFileProvider.NAME );
 
     return repositoryFile1;
   }
@@ -98,5 +99,13 @@ public class RepositoryFile extends RepositoryObject implements File {
       return JOB;
     }
     return "";
+  }
+
+  @Override public String getRoot() {
+    return root;
+  }
+
+  public void setRoot( String root ) {
+    this.root = root;
   }
 }

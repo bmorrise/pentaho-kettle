@@ -29,7 +29,7 @@ define(
 
       var factoryArray = ["helperService", "$http", "$q", factory];
       var module = {
-        name: "repositoryService",
+        name: "localService",
         factory: factoryArray
       };
 
@@ -45,7 +45,7 @@ define(
       function factory(helperService, $http, $q) {
         var baseUrl = "/cxf/browser";
         return {
-          provider: "repository",
+          provider: "local",
           selectFolder: selectFolder,
           getPath: getPath,
           createFolder: createFolder,
@@ -53,7 +53,7 @@ define(
           parsePath: parsePath
         };
 
-        function findRootNode(tree, folder, subtree) {
+        function findRootNode(tree, folder, path) {
           for (var i = 0; i < tree.length; i++) {
             if (tree[i].name.toLowerCase() === folder.root.toLowerCase()) {
               return tree[i];
@@ -72,9 +72,12 @@ define(
 
         function selectFolder(folder, filters, callback) {
           if (folder.path && !folder.loaded) {
-            getFiles(folder.path).then(function(response) {
+            getFiles(folder.provider, folder.path, filters).then(function(response) {
+              folder.children = response.data;
               folder.loaded = true;
-              folder.children = response.data.children;
+              for (var i = 0; i < folder.children.length; i++) {
+                folder.children[i].provider = folder.provider;
+              }
               if (callback) {
                 callback();
               }
@@ -87,6 +90,9 @@ define(
         }
 
         function getPath(folder) {
+          if (!folder.path) {
+            return folder.root;
+          }
           return folder.root + folder.path;
         }
 
@@ -99,8 +105,8 @@ define(
          *
          * @return {Promise} - a promise resolved once data is returned
          */
-        function getFiles(path) {
-          return helperService.httpGet([baseUrl, "loadFilesAndFolders", encodeURIComponent(path)].join("/"));
+        function getFiles(type, path, filters) {
+          return helperService.httpGet([baseUrl, "getFiles"].join("/") + "?type="+type+"&path=" + path + (filters?"&filters="+filters:""));
         }
       }
     });

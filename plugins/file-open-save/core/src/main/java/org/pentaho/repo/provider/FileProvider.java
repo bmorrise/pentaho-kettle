@@ -9,6 +9,6 @@ public interface FileProvider {
   String getName();
   String getType();
   Tree getTree();
-  List<? extends File> getFiles( String name, String path );
+  List<? extends File> getFiles( String name, String path, String filters );
   boolean isAvailable();
 }

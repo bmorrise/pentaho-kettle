@@ -1,28 +1,31 @@
 package org.pentaho.repo.provider.vfs.model;
 
 import org.pentaho.repo.provider.File;
+import org.pentaho.repo.provider.Providerable;
+import org.pentaho.repo.provider.vfs.VFSFileProvider;
 
+import javax.xml.ws.Provider;
 import java.util.Date;
 
 /**
  * Created by bmorrise on 2/13/19.
  */
-public class VFSFile implements File {
+public class VFSFile implements File, Providerable {
   public static String TYPE = "file";
-  public static String ACTION = "VFS";
 
   private String name;
   private String path;
   private String parent;
   private String connection;
+  private String root;
   private Date date;
 
   @Override public String getType() {
     return TYPE;
   }
 
-  @Override public String getAction() {
-    return ACTION;
+  @Override public String getProvider() {
+    return VFSFileProvider.TYPE;
   }
 
   public String getConnection() {
@@ -63,5 +66,13 @@ public class VFSFile implements File {
 
   public void setDate( Date date ) {
     this.date = date;
+  }
+
+  @Override public String getRoot() {
+    return root;
+  }
+
+  public void setRoot( String root ) {
+    this.root = root;
   }
 }

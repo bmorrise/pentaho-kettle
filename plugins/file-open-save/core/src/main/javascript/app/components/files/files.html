@@ -50,7 +50,7 @@
           title="{{file.name}}&#013;{{file.path}}">
         <td class="nameCell">
           <div class="fileTypeIcon"
-              ng-style="{'background-image':'url(\'./img/types/'+vm.getExtension(file)+'.svg\')'}"
+              ng-style="{'background-image': vm.getIcon(file)}"
                ng-class="{'file-trans': file.type === 'transformation',
                           'file-job': file.type === 'job',
                           'file-folder': file.type === 'folder'}"></div>

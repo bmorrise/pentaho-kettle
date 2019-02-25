@@ -22,7 +22,8 @@ public class ConnectionManager {
 
   private List<LookupFilter> lookupFilters = new ArrayList<>();
   private Supplier<IMetaStore> metaStoreSupplier;
-  private ConcurrentHashMap<String, ConnectionProvider> connectionProviders = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<String, ConnectionProvider<? extends ConnectionDetails>> connectionProviders =
+    new ConcurrentHashMap<>();
 
   public static ConnectionManager getInstance() {
     if ( instance == null ) {
@@ -85,9 +86,16 @@ public class ConnectionManager {
     }
   }
 
+  public <T extends ConnectionDetails> boolean test( T connectionDetails ) {
+    ConnectionProvider<T> connectionProvider =
+      (ConnectionProvider<T>) connectionProviders.get( connectionDetails.getType() );
+    return connectionProvider.test( connectionDetails );
+  }
+
   public void delete( String name ) {
-    List<ConnectionProvider> providers = Collections.list( connectionProviders.elements() );
-    for ( ConnectionProvider provider : providers ) {
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
+      Collections.list( connectionProviders.elements() );
+    for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
       try {
         ConnectionDetails connectionDetails = getMetaStoreFactory( provider.getClassType() ).loadElement( name );
         if ( connectionDetails != null ) {
@@ -99,17 +107,17 @@ public class ConnectionManager {
     }
   }
 
-  public List<ConnectionProvider> getProviders() {
+  public List<ConnectionProvider<? extends ConnectionDetails>> getProviders() {
     return Collections.list( this.connectionProviders.elements() );
   }
 
-  public List<ConnectionProvider> getProvidersByType( Class<? extends ConnectionProvider> clazz ) {
+  public List<ConnectionProvider<? extends ConnectionDetails>> getProvidersByType( Class<? extends ConnectionProvider> clazz ) {
     return Collections.list( connectionProviders.elements() ).stream().filter(
       connectionProvider -> clazz.isAssignableFrom( connectionProvider.getClass() )
     ).collect( Collectors.toList() );
   }
 
-  private List<String> getNames( ConnectionProvider provider ) {
+  private List<String> getNames( ConnectionProvider<? extends ConnectionDetails> provider ) {
     try {
       return getMetaStoreFactory( provider.getClassType() ).getElementNames();
     } catch ( MetaStoreException mse ) {
@@ -119,8 +127,9 @@ public class ConnectionManager {
 
   public List<String> getNames() {
     List<String> detailNames = new ArrayList<>();
-    List<ConnectionProvider> providers = Collections.list( connectionProviders.elements() );
-    for ( ConnectionProvider provider : providers ) {
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
+      Collections.list( connectionProviders.elements() );
+    for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
       detailNames.addAll( getNames( provider ) );
     }
     return detailNames;
@@ -128,18 +137,20 @@ public class ConnectionManager {
 
   public List<String> getNamesByType( Class<? extends ConnectionProvider> clazz ) {
     List<String> detailNames = new ArrayList<>();
-    List<ConnectionProvider> providers = Collections.list( connectionProviders.elements() ).stream().filter(
-            connectionProvider -> clazz.isAssignableFrom( connectionProvider.getClass() )
-    ).collect( Collectors.toList() );
-    for ( ConnectionProvider provider : providers ) {
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
+      Collections.list( connectionProviders.elements() ).stream().filter(
+        connectionProvider -> clazz.isAssignableFrom( connectionProvider.getClass() )
+      ).collect( Collectors.toList() );
+    for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
       detailNames.addAll( getNames( provider ) );
     }
     return detailNames;
   }
 
   public ConnectionDetails loadConnectionDetails( String name ) {
-    List<ConnectionProvider> providers = Collections.list( connectionProviders.elements() );
-    for ( ConnectionProvider provider : providers ) {
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
+      Collections.list( connectionProviders.elements() );
+    for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
       try {
         ConnectionDetails connectionDetails = getMetaStoreFactory( provider.getClassType() ).loadElement( name );
         if ( connectionDetails != null ) {
@@ -154,7 +165,7 @@ public class ConnectionManager {
 
   public ConnectionDetails getConnectionDetails( String scheme ) {
     try {
-      ConnectionProvider provider = connectionProviders.get( scheme );
+      ConnectionProvider<? extends ConnectionDetails> provider = connectionProviders.get( scheme );
       return provider.getClassType().newInstance();
     } catch ( InstantiationException | IllegalAccessException e ) {
       return null;
@@ -172,7 +183,8 @@ public class ConnectionManager {
 
   public List<Type> getItems() {
     List<Type> types = new ArrayList<>();
-    List<ConnectionProvider> providers = Collections.list( connectionProviders.elements() );
+    List<ConnectionProvider<? extends ConnectionDetails>> providers =
+      Collections.list( connectionProviders.elements() );
     for ( ConnectionProvider provider : providers ) {
       types.add( new ConnectionManager.Type( provider.getKey(), provider.getName() ) );
     }

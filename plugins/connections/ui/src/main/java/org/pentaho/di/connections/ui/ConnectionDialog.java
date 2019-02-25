@@ -19,6 +19,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.extension.ExtensionPointHandler;
+import org.pentaho.di.core.extension.KettleExtensionPoint;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.platform.settings.ServerPort;
@@ -66,6 +70,23 @@ public class ConnectionDialog extends ThinDialog {
         browser.dispose();
         dialog.close();
         dialog.dispose();
+        return true;
+      }
+    };
+
+    new BrowserFunction( browser, "browse" ) {
+      @Override public Object function( Object[] arguments ) {
+        try {
+          FileDialogOperation fileDialogOperation =
+            new FileDialogOperation( FileDialogOperation.SELECT_FILE, FileDialogOperation.ORIGIN_OTHER );
+          ExtensionPointHandler.callExtensionPoint( null, KettleExtensionPoint.SpoonOpenSaveRepository.id,
+            fileDialogOperation );
+          if ( fileDialogOperation.getPath() != null ) {
+            return fileDialogOperation.getPath();
+          }
+        } catch ( KettleException ke ) {
+          // Ignore
+        }
         return true;
       }
     };

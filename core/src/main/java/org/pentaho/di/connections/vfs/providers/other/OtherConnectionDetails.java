@@ -15,6 +15,9 @@ public class OtherConnectionDetails implements VFSConnectionDetails {
   public static final String TYPE = "other";
 
   @MetaStoreAttribute
+  private String protocol;
+
+  @MetaStoreAttribute
   private String name;
 
   @MetaStoreAttribute
@@ -28,6 +31,9 @@ public class OtherConnectionDetails implements VFSConnectionDetails {
 
   @MetaStoreAttribute
   private String password;
+
+  @MetaStoreAttribute
+  private String description;
 
   public String getHost() {
     return host;
@@ -73,5 +79,21 @@ public class OtherConnectionDetails implements VFSConnectionDetails {
   @Override
   public String getType() {
     return TYPE;
+  }
+
+  public String getProtocol() {
+    return protocol;
+  }
+
+  public void setProtocol( String protocol ) {
+    this.protocol = protocol;
+  }
+
+  @Override public String getDescription() {
+    return description;
+  }
+
+  public void setDescription( String description ) {
+    this.description = description;
   }
 }

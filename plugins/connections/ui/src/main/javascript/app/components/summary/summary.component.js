@@ -19,11 +19,13 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.getLabel = getLabel;
+    vm.onEditClick = onEditClick;
 
     function onInit() {
       vm.connectionSummary = "VFS connection summary";
       vm.generalSettings = "General Settings";
       vm.connectionDetails = "Connection details";
+      vm.description = "Description";
       vm.finishLabel = "Finish";
       vm.data = $stateParams.data;
     }
@@ -35,6 +37,10 @@ define([
         }
       }
       return "";
+    }
+
+    function onEditClick(destination) {
+      $state.go(destination, {data: vm.data, transition: "slideRight"});
     }
   }
 

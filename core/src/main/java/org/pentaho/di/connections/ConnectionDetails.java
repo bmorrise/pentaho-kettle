@@ -9,4 +9,6 @@ public interface ConnectionDetails {
   void setName( String name );
 
   String getType();
+
+  String getDescription();
 }

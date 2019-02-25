@@ -27,6 +27,7 @@
  **/
 define([
   "angular",
+  "pentaho/module/instancesOf!IPenFileService",
   "./app.config",
   "./app.component",
   "./components/card/card.component",
@@ -45,14 +46,18 @@ define([
   "./services/data.service",
   "./services/repository.service",
   "./services/vfs.service",
+  "./services/local.service",
   "./services/search.service",
   "./services/file.service",
+  "./services/folder.service",
   "./shared/directives/resize/resize.module",
+  "./services/services.service",
   "angular-ui-router"
-], function (angular, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
+], function (angular, fileServices, appConfig, appComponent, cardComponent, folderComponent, errorComponent,
              loadingComponent, breadcrumbComponent, filesComponent, searchComponent, editDirective, keyDirective,
              focusDirective, scrollToFolderDirective, breadcrumbDirective, helperService,
-             dataService, repositoryService, vfsService, searchService, fileService, resizeModule) {
+             dataService, repositoryService, vfsService, localService, searchService, fileService, folderService,
+             resizeModule, servicesService) {
   "use strict";
 
   var module = {
@@ -70,7 +75,7 @@ define([
    * @private
    */
   function activate() {
-    angular.module(module.name, [resizeModule.name, "ui.router"])
+    var a = angular.module(module.name, [resizeModule.name, "ui.router"])
         .component(loadingComponent.name, loadingComponent.options)
         .component(appComponent.name, appComponent.options)
         .component(cardComponent.name, cardComponent.options)
@@ -86,11 +91,15 @@ define([
         .directive(scrollToFolderDirective.name, scrollToFolderDirective.options)
         .service(helperService.name, helperService.factory)
         .service(dataService.name, dataService.factory)
-        .service(repositoryService.name, repositoryService.factory)
-        .service(vfsService.name, vfsService.factory)
         .service(fileService.name, fileService.factory)
+        .service(folderService.name, folderService.factory)
         .service(searchService.name, searchService.factory)
+        .service(servicesService.name, servicesService.factory)
         .config(appConfig);
+
+    fileServices.map(function(item) {
+      a.service(item.name, item.factory);
+    });
   }
 
   /**

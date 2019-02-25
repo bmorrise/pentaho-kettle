@@ -22,14 +22,15 @@
 
 package org.pentaho.di.connections.ui.endpoints;
 
+import org.pentaho.di.connections.ConnectionDetails;
+import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.ui.ConnectionFolderProvider;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
-import org.pentaho.di.connections.ConnectionManager;
-import org.pentaho.di.connections.ConnectionDetails;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -85,6 +86,18 @@ public class ConnectionEndpoints {
       return Response.ok().build();
     } else {
       return Response.serverError().build();
+    }
+  }
+
+  @POST
+  @Path( "/test" )
+  @Consumes( { APPLICATION_JSON } )
+  public Response testConnection( ConnectionDetails connectionDetails ) {
+    boolean valid = connectionManager.test( connectionDetails );
+    if ( valid ) {
+      return Response.ok().build();
+    } else {
+      return Response.status( Response.Status.BAD_REQUEST ).build();
     }
   }
 }

@@ -23,12 +23,14 @@ define([
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
       vm.connectionDetails = "Connection Details";
+      vm.protocol = "Protocol";
       vm.host = "Hostname";
       vm.port = "Port";
       vm.username = "Username";
       vm.password = "Password";
 
       vm.data.mapping = {
+        "protocol": vm.protocol,
         "host": vm.host,
         "port": vm.port,
         "username": vm.username,

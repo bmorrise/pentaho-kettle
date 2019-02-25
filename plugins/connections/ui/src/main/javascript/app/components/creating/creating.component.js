@@ -23,13 +23,11 @@ define([
     function onInit() {
       vm.almostDone = "Almost done";
       vm.message = "Creating your new VFS connection...";
-
-      vm.data.model.name = vm.data.name;
-      dataService.createConnection(vm.data.model).then(function() {
-        $timeout(function() {
+      $timeout(function() {
+        dataService.createConnection(vm.data.model).then(function () {
           $state.go("final", {data: vm.data});
-        }, 1000);
-      });
+        });
+      }, 1000);
     }
   }
 

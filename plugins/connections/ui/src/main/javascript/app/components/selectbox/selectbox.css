@@ -49,3 +49,9 @@ selectbox ul {
   padding: 0;
   list-style: none;
 }
+
+selectbox:after {
+  content: "";
+  display: table;
+  clear: both;
+}

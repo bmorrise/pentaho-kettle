@@ -73,6 +73,7 @@ public class RepositoryOpenSaveExtensionPoint implements ExtensionPointInterface
 
     RepositoryOpenSaveDialog repositoryOpenSaveDialog =
       new RepositoryOpenSaveDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
+
     repositoryOpenSaveDialog.open( fileDialogOperation.getRepository(), startingDir, fileDialogOperation.getCommand(),
       fileDialogOperation.getTitle(), fileDialogOperation.getFilter(), fileDialogOperation.getOrigin(),
       fileDialogOperation.getFilename(), fileDialogOperation.getFileType() );

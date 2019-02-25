@@ -18,7 +18,7 @@ public class RepositoryFileProvider implements FileProvider {
   private RepositoryBrowserController repositoryBrowserController;
 
   public static final String NAME = "Pentaho Repository";
-  public static final String TYPE = "PENTAHO_REPOSITORY";
+  public static final String TYPE = "repository";
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
@@ -38,7 +38,7 @@ public class RepositoryFileProvider implements FileProvider {
     return repositoryTree;
   }
 
-  @Override public List<File> getFiles( String name, String path ) {
+  @Override public List<File> getFiles( String name, String path, String filters ) {
     return null;
   }
 

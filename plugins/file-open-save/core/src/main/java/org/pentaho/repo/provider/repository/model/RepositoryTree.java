@@ -23,6 +23,7 @@
 package org.pentaho.repo.provider.repository.model;
 
 import org.pentaho.repo.provider.Tree;
+import org.pentaho.repo.provider.repository.RepositoryFileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,19 +33,16 @@ import java.util.List;
  */
 public class RepositoryTree implements Tree<RepositoryDirectory> {
 
-  public static final String ACTION = "root";
+  private String name;
+  private boolean includeRoot;
 
-  public String getAction() {
-    return ACTION;
+  @Override public String getProvider() {
+    return RepositoryFileProvider.TYPE;
   }
 
   public RepositoryTree( String name ) {
     this.name = name;
   }
-
-  private String name;
-
-  private boolean includeRoot;
 
   @Override public String getName() {
     return name;

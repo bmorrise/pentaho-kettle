@@ -22,6 +22,8 @@
 package org.pentaho.repo.provider.repository.model;
 
 import org.pentaho.di.repository.ObjectId;
+import org.pentaho.repo.provider.Providerable;
+import org.pentaho.repo.provider.repository.RepositoryFileProvider;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,9 +32,7 @@ import java.util.List;
 /**
  * Created by bmorrise on 5/16/17.
  */
-public abstract class RepositoryObject {
-
-  public static final String ACTION = "repository";
+public abstract class RepositoryObject implements Providerable {
 
   private String name;
   private ObjectId objectId;
@@ -46,8 +46,8 @@ public abstract class RepositoryObject {
   private boolean hidden = false;
   private List<RepositoryObject> children = new ArrayList<>();
 
-  public String getAction() {
-    return ACTION;
+  @Override public String getProvider() {
+    return RepositoryFileProvider.TYPE;
   }
 
   public void addChild( RepositoryObject repositoryObject ) {

@@ -24,21 +24,18 @@ package org.pentaho.repo.provider.repository.model;
 
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
 import org.pentaho.repo.provider.Directory;
+import org.pentaho.repo.provider.repository.RepositoryFileProvider;
 
 /**
  * Created by bmorrise on 5/16/17.
  */
 public class RepositoryDirectory extends RepositoryObject implements Directory {
 
+  public static final String DIRECTORY = "folder";
+  private String root;
+
   public RepositoryDirectory() {
     this.setHasChildren( true );
-  }
-
-  public static final String DIRECTORY = "folder";
-  public static final String ACTION = "Repository";
-
-  @Override public String getAction() {
-    return ACTION;
   }
 
   @Override public String getType() {
@@ -53,6 +50,7 @@ public class RepositoryDirectory extends RepositoryObject implements Directory {
     repositoryDirectory.setPath( repositoryDirectoryInterface.getPath() );
     repositoryDirectory.setObjectId( repositoryDirectoryInterface.getObjectId() );
     repositoryDirectory.setHidden( !repositoryDirectoryInterface.isVisible() );
+    repositoryDirectory.setRoot( RepositoryFileProvider.NAME );
 
     return repositoryDirectory;
   }
@@ -68,8 +66,16 @@ public class RepositoryDirectory extends RepositoryObject implements Directory {
     repositoryDirectory.setHidden( repositoryFile.isHidden() && !isAdmin );
     repositoryDirectory.setDate( repositoryFile.getLastModifiedDate() != null ? repositoryFile.getLastModifiedDate()
       : repositoryFile.getCreatedDate() );
+    repositoryDirectory.setRoot( RepositoryFileProvider.NAME );
 
     return repositoryDirectory;
   }
 
+  @Override public String getRoot() {
+    return root;
+  }
+
+  public void setRoot( String root ) {
+    this.root = root;
+  }
 }
