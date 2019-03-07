@@ -22,20 +22,14 @@
 
 package org.pentaho.repo.providers.local;
 
-import mondrian.olap.Util;
-import org.pentaho.repo.providers.FileOpts;
-import org.pentaho.repo.providers.FileProvider;
-import org.pentaho.repo.providers.FromTo;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Result;
-import org.pentaho.repo.providers.Snipes;
-import org.pentaho.repo.providers.Tree;
-import org.pentaho.repo.providers.Utils;
+import org.pentaho.repo.api.providers.FileProvider;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Result;
+import org.pentaho.repo.api.providers.Tree;
+import org.pentaho.repo.api.providers.Utils;
 import org.pentaho.repo.providers.local.model.LocalDirectory;
 import org.pentaho.repo.providers.local.model.LocalFile;
 import org.pentaho.repo.providers.local.model.LocalTree;
-import org.pentaho.repo.providers.processor.Process;
-import org.pentaho.repo.providers.processor.Processor;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -59,22 +53,24 @@ public class LocalFileProvider implements FileProvider {
 
   public static final String NAME = "Local";
   public static final String TYPE = "local";
-  public static final int ONE_MINUTE = 60000;
 
-  private final Processor processor;
-
-  public LocalFileProvider( Processor processor ) {
-    this.processor = processor;
-  }
-
+  /**
+   * @return
+   */
   @Override public String getName() {
     return NAME;
   }
 
+  /**
+   * @return
+   */
   @Override public String getType() {
     return TYPE;
   }
 
+  /**
+   * @return
+   */
   @Override public Tree getTree() {
     LocalTree localTree = new LocalTree( NAME );
     String home = System.getProperty( "user.home" );
@@ -83,6 +79,10 @@ public class LocalFileProvider implements FileProvider {
     return localTree;
   }
 
+  /**
+   * @param path
+   * @return
+   */
   public LocalDirectory getDirectory( String path ) {
     File file = new File( path );
     LocalDirectory localDirectory = new LocalDirectory();
@@ -92,6 +92,12 @@ public class LocalFileProvider implements FileProvider {
     return localDirectory;
   }
 
+  /**
+   * @param path
+   * @param filters
+   * @param properties
+   * @return
+   */
   // TODO: Filter out certain files from root
   @Override public List<LocalFile> getFiles( String path, String filters, Properties properties ) {
     List<LocalFile> files = new ArrayList<>();
@@ -114,10 +120,18 @@ public class LocalFileProvider implements FileProvider {
     return files;
   }
 
+  /**
+   * @return
+   */
   @Override public boolean isAvailable() {
     return true;
   }
 
+  /**
+   * @param paths
+   * @param properties
+   * @return
+   */
   //TODO: Handle directories with files in them
   @Override public Result deleteFiles( List<String> paths, Properties properties ) {
     Result.Status status = Result.Status.SUCCESS;
@@ -133,7 +147,16 @@ public class LocalFileProvider implements FileProvider {
     return new Result( status, "Delete Files Completed", deletedFiles );
   }
 
+  /**
+   * @param path
+   * @param properties
+   * @return
+   */
   @Override public Result addFolder( String path, Properties properties ) {
+    Path folderPath = Paths.get( path );
+    if ( Files.exists( folderPath ) ) {
+      return Result.fileCollision( "Folder already exists", null );
+    }
     try {
       Path newPath = Files.createDirectories( Paths.get( path ) );
       LocalDirectory localDirectory = new LocalDirectory();
@@ -143,9 +166,9 @@ public class LocalFileProvider implements FileProvider {
       localDirectory.setRoot( NAME );
       localDirectory.setCanAddChildren( true );
       localDirectory.setCanEdit( true );
-      return new Result( Result.Status.SUCCESS, "Add Folder Completed", localDirectory );
+      return Result.success( "Add Folder Completed", localDirectory );
     } catch ( IOException e ) {
-      return new Result( Result.Status.ERROR, "Add Folder Error", null );
+      return Result.error( "Add Folder Error", null );
     }
   }
 
@@ -156,92 +179,37 @@ public class LocalFileProvider implements FileProvider {
    * @param properties
    * @return
    */
-  @Override public Result renameFile( String path, String newPath, String overwrite, Properties properties ) {
-    Result.Status status = Result.Status.SUCCESS;
-    String updatedPath = "";
+  @Override public Result renameFile( String path, String newPath, boolean overwrite, Properties properties ) {
     try {
-      switch ( overwrite ) {
-        case FileOpts.OVERWRITE_ALL:
-        case FileOpts.OVERWRITE_ONE:
-          updatedPath =
-            Files.move( Paths.get( path ), Paths.get( newPath ), StandardCopyOption.REPLACE_EXISTING ).toString();
-          break;
-        case FileOpts.RENAME_ONE:
-        case FileOpts.RENAME_ALL:
-          int index = 1;
-          while ( Files.exists( Paths.get( newPath ) ) ) {
-            newPath = newPath + " " + String.valueOf( index++ );
-          }
-        default:
-          updatedPath = Files.move( Paths.get( path ), Paths.get( newPath ) ).toString();
-          break;
+      if ( overwrite ) {
+        Files.move( Paths.get( path ), Paths.get( newPath ), StandardCopyOption.REPLACE_EXISTING );
+      } else {
+        Files.move( Paths.get( path ), Paths.get( newPath ) );
       }
-    } catch ( FileAlreadyExistsException e ) {
-      status = Result.Status.FILE_COLLISION;
+      return Result.success( "Success renaming file", newPath );
     } catch ( IOException e ) {
-      status = Result.Status.ERROR;
+      return Result.error( "Error renaming file", path );
     }
-    return new Result( status, "Rename File Completed", updatedPath );
+  }
+
+  @Override public Result copyFile( String path, String newPath, boolean overwrite, Properties properties ) {
+    try {
+      Files.copy( Paths.get( path ), Paths.get( newPath ), StandardCopyOption.REPLACE_EXISTING );
+      return Result.success( "Copy Finished", newPath );
+    } catch ( IOException e ) {
+      return Result.error( "Error during copy", path );
+    }
+  }
+
+  @Override public Result fileExists( String path, Properties properties ) {
+    return Result.success( "File exists", Files.exists( Paths.get( path ) ) );
   }
 
   /**
-   * @param paths
-   * @param newPath
-   * @param overwrite
+   * @param path
    * @param properties
    * @return
    */
-  @Override public Result moveFiles( List<String> paths, String newPath, boolean overwrite, Properties properties ) {
-    String uuid = processor.submit( new Process() {
-      @Override public void run() {
-        Result.Status status = Result.Status.SUCCESS;
-        List<String> moved = new ArrayList<>();
-        List<String> skipped = new ArrayList<>();
-        List<String> error = new ArrayList<>();
-        for ( String path : paths ) {
-          String movePath = newPath + path.substring( path.lastIndexOf( "/" ), path.length() );
-          setStatus( new Result( Result.Status.PENDING, "Moving Files In Progress", new FromTo( path, movePath ) ) );
-          Result result = renameFile( path, movePath, getProperties().getString( FileOpts.OVERWRITE ), properties );
-          System.out.println( path + ":" + movePath );
-          if ( result.getStatus().equals( Result.Status.FILE_COLLISION ) ) {
-            setStatus(
-              new Result( Result.Status.FILE_COLLISION, "Moving Files Collision", new FromTo( path, movePath ) ) );
-            setState( State.PAUSED );
-            System.out.println( getState() );
-            synchronized ( this ) {
-              while ( isState( State.PAUSED ) ) {
-                try {
-                  this.wait();
-                } catch ( InterruptedException e ) {
-                  e.printStackTrace();
-                }
-              }
-            }
-            String overwrite = getProperties().getString( FileOpts.OVERWRITE );
-            if ( !Util.isEmpty( overwrite ) ) {
-              if ( renameFile( path, movePath, overwrite, properties ).getStatus()
-                .equals( Result.Status.SUCCESS ) ) {
-                moved.add( path );
-              }
-            } else {
-              skipped.add( path );
-            }
-            if ( overwrite.equals( FileOpts.OVERWRITE_ONE ) || overwrite.equals( FileOpts.RENAME_ONE ) ) {
-              setProperty( FileOpts.OVERWRITE, null );
-            }
-          } else if ( !result.getStatus().equals( Result.Status.SUCCESS ) ) {
-            status = Result.Status.ERROR;
-            error.add( path );
-          } else {
-            moved.add( path );
-          }
-        }
-        setStatus( new Result( status, "Moving Files Complete", new Snipes( moved, skipped, error ) ) );
-      }
-    } );
-    return new Result( Result.Status.PENDING, "Moving Files Initiated", uuid );
-  }
-
   @Override public InputStream readFile( String path, Properties properties ) {
     try {
       return new BufferedInputStream( new FileInputStream( new File( path ) ) );
@@ -250,6 +218,14 @@ public class LocalFileProvider implements FileProvider {
     }
   }
 
+  /**
+   * @param inputStream
+   * @param path
+   * @param properties
+   * @param overwrite
+   * @return
+   * @throws FileAlreadyExistsException
+   */
   @Override public boolean writeFile( InputStream inputStream, String path, Properties properties, boolean overwrite )
     throws FileAlreadyExistsException {
     try {
@@ -260,5 +236,31 @@ public class LocalFileProvider implements FileProvider {
     } catch ( IOException e ) {
       return false;
     }
+  }
+
+  /**
+   * @param provider
+   * @param properties
+   * @return
+   */
+  @Override public boolean isSame( String provider, Properties properties ) {
+    return provider.equals( TYPE );
+  }
+
+  @Override public Result getNewName( String path, Properties properties ) {
+    String extension = Utils.getExtension( path );
+    String parent = Utils.getParent( path );
+    String name = Utils.getName( path ).replace( "." + extension, "" );
+    int i = 1;
+    String testName = path;
+    while ( Files.exists( Paths.get( testName ) ) ) {
+      if ( Utils.isValidExtension( extension ) ) {
+        testName = parent + name + " " + String.valueOf( i ) + "." + extension;
+      } else {
+        testName = path + " " + String.valueOf( i );
+      }
+      i++;
+    }
+    return Result.success( "Got new name", testName );
   }
 }

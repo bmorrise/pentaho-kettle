@@ -24,7 +24,7 @@ package org.pentaho.di.connections.ui.endpoints;
 
 import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.connections.ConnectionManager;
-import org.pentaho.di.connections.ui.ConnectionFolderProvider;
+import org.pentaho.di.connections.ui.tree.ConnectionFolderProvider;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
@@ -65,14 +65,14 @@ public class ConnectionEndpoints {
   @Path( "/connection/{scheme}" )
   @Produces( { APPLICATION_JSON } )
   public Response getFields( @PathParam( "scheme" ) String scheme ) {
-    return Response.ok( connectionManager.getConnectionDetails( scheme ) ).build();
+    return Response.ok( connectionManager.createConnectionDetails( scheme ) ).build();
   }
 
   @GET
   @Path( "/connection" )
   @Consumes( { APPLICATION_JSON } )
   public Response getConnection( @QueryParam( "name" ) String name ) {
-    return Response.ok( connectionManager.loadConnectionDetails( name ) ).build();
+    return Response.ok( connectionManager.getConnectionDetails( name ) ).build();
   }
 
   @GET

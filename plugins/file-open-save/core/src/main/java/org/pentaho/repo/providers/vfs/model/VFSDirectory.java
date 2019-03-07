@@ -24,7 +24,7 @@ package org.pentaho.repo.providers.vfs.model;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.pentaho.repo.providers.Directory;
+import org.pentaho.repo.api.providers.Directory;
 import org.pentaho.repo.providers.vfs.VFSFileProvider;
 
 import java.util.ArrayList;

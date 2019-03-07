@@ -58,7 +58,7 @@ define([
     controller: filesController
   };
 
-  filesController.$inject = [clipboardService.name, "$timeout", "$filter", "$document"];
+  filesController.$inject = [clipboardService.name, "$timeout", "$filter", "$document", "$scope"];
 
   /**
    * The Files Controller.
@@ -68,7 +68,7 @@ define([
    * @param {Function} $timeout - Angular wrapper for window.setTimeout.
    * @param $filter
    */
-  function filesController(clipboardService, $timeout, $filter, $document) {
+  function filesController(clipboardService, $timeout, $filter, $document, $scope) {
     var vm = this;
     var extensions = ['dsn', 'ph', 'config', 'aze', 'rom', 'bowerrc', 'ktr', 'ini', 'kts', 'p7b', 'docm', 'rtf', 'rub', 'ico', 'vmdk', 'pyc', 'wsf', 'deb', 'cal', 'ra', 'tcsh', 'txt', 'kt', 'xcf', 'coffeelintignore', '3ga', 'eot', 'handlebars', 'pub', 'rar', 'bpg', 'docx', 'img', 'pom', 'ott', 'rb', 'ru', 'xml', 'ace', 'gitattributes', 'js', 'j2', 'ibooks', 'vox', 'jsp', '3g2', 'py', 'sass', 'java', 'raw', 'codekit', 'webm', 'kup', 'master', 'enc', 'otf', 'cptx', 'plist', 'po', 'step', 'bash', 'xlm', 'sql', 'ocx', 'ttf', 'crdownload', 'el', 'map', '3gp', 'pm', 'dgn', 'tar', 'lex', 'tiff', 'nix', 'conf', 'lisp', 'eml', 'tmp', 'pl', 'blank', 'scss', 'in', 'compile', 'cpp', 'mpeg', 'au', 'f4v', 'dot', 'vss', 'doc', 'dng', 'vsd', 'zip', 'lock', 'pgp', 'bz2', 'wav', 'yml', 'gdp', 'rsa', 'rpm', 'json', 'key', 'pst', 'asmx', 'vscodeignore', 'ash', 'ac', 'zsh', 'aif', 'csh', 'm4', 'msg', 'accdt', 'aa', 'dll', 'cer', 'mkv', 'xps', 'tfignore', 'applescript', 'flac', 'wmv', 'rst', 'wma', 'pkg', 'xaml', 'download', 'pem', 'm3u8', 'licx', 'kjb', 'resx', 'tga', 'dbf', 'jar', 'asax', 'sol', 'retry', 'app', 'accdb', 'm', 'vdx', 'csproj', 'fb2', 'z', 'mc', 'ogv', 'dwg', 'xfl', 'tpl', 'fnt', 'msu', 'asx', 'psd', 'idx', 'coffee', 'wbk', 'iff', 'gif', 'bzempty', 'cfm', 'cgi', 'xsl', 'indd', 'dist', 'ts', 'vst', 'class', 'sys', 'h', 'tsv', 'md', 'ds_store', 'hlp', 'fax', 'ost', 'phar', 'ps1', 'psp', 'lnk', 'rdl', 'bak', 'eps', 'lua', 'war', 'p12', 'rss', 'wmf', 'heic', 'gpg', 'info', 'gadget', 'tex', 'asm', 'vdi', 'ogg', 'ait', 'me', 'jpeg', 'mpa', 'pages', 'vb', 'htm', 'icns', 'pdb', 'ppsx', 'cfml', 'woff2', 'pid', 'sldm', 'image', '7z', 'midi', 'mi', 'stl', 'xlsm', 'mk', 'csv', 'xlsx', 'mp4', 'asc', 'ascx', 'bmp', 'pps', 'sldx', 'dart', 'reg', 'aifc', 'sqlite', 'ksh', 'xspf', 'default', 'dat', 'vsx', 'mdf', 'm2v', 'mpt', 'part', 'ai', 'svg', 'ods', 'cr2', 'fon', 'swp', 'css', 'mpp', 'mpg', 'asf', 'mdb', 'xsd', 'gpl', 'rdf', 'iso', 'rpt', 'php', 'gem', 'aiff', 'code-workspace', 'ifo', 'webinfo', 'mid', 'tgz', 'xpi', 'asp', 'apk', 'tif', 'adn', 'cs', 'cd', 'mo', 'mpga', 'crypt', 'swf', 'swd', 'fla', 'odt', 'flv', 'mm', 'crt', 'dxf', 'mp2', 'c', 'mpd', 'browser', 'dmg', 'm3u', 'chm', 'sln', 'editorconfig', 'epub', 'pfx', 'twig', 'pdf', 'eslintignore', 'bat', 'log', 'cson', 'kf8', 'ppt', 'xrb', 'cfg', 'woff', 'xz', 'mpe', 'vbproj', 'mp3', 'msi', 'odb', 'hbs', 'dtd', 'ani', 'amr', 'xlt', 'sitemap', 'yaml', 'cad', 'axd', 'skin', 'iml', 'pcd', 'inv', 'dotm', 'bin', 'mov', 'ova', 'm4a', 'm4v', 'aspx', 'jpe', 'catalog', 'dpj', 'hs', 'jpg', 'vbs', 'cmd', 'mng', 'sed', 'dotx', 'elf', 'less', 'udf', 'lit', 'ics', 'swift', 'inc', 'nfo', 'data', 'ram', 'gitignore', 'cdda', 'caf', 'html', 'com', 'vob', 'torrent', 'potx', 'xltm', 'db', 'avi', 'qt', 'hsl', 'cab', 'tax', 'ovf', 'wps', 'npmignore', 'pptx', 'prop', 'inf', 'docb', 'nef', 'ashx', 'sit', 'jsx', 'go', 'vcs', 'xls', 'vcd', 'aac', 'gz', 'vcf', 'tmx', 'vtx', 'm4r', 'sh', 'ps', 'sdf', 'folder', 'sphinx', 'kmk', 'webp', 'nes', 'png', 'pot', 'exe', 'mobi', 'pptm', 'gradle', 'mod', 'aup', 'rm', 'diz', 'cur', 'xltx', 'cue'];
     vm.$onInit = onInit;
@@ -121,7 +121,10 @@ define([
         if (event.keyCode === 86 && ctrlKey) {
           vm.onPasteFolder();
         }
-        // TODO: Figure out how to do the delete key
+        if (event.keyCode === 65 && ctrlKey) {
+          selectAll();
+        }
+        // TODO: Figure out how to do the delete key for Mac/Windows
       });
     }
 
@@ -202,7 +205,7 @@ define([
           }
         }
       } else {
-        if (vm.selectedFiles.length === 0 || vm.selectedFiles.length > 1 || ( vm.selectedFiles.length === 1 && vm.selectedFiles.indexOf(file) === -1 ) ) {
+        if (vm.selectedFiles.length === 0 || vm.selectedFiles.length > 1 || ( vm.selectedFiles.length === 1 && vm.selectedFiles.indexOf(file) === -1 )) {
           vm.selectedFiles = [];
           if (file) {
             vm.selectedFiles.push(file);
@@ -244,10 +247,14 @@ define([
         folder: folder
       }).then(function () {
         // Do nothing
-      }, function () {
-        var index = vm.folder.children.indexOf(folder);
-        if (index !== -1) {
-          vm.folder.children.splice(index, 1);
+      }, function (status) {
+        if (status === "FILE_COLLISION") {
+          folder.editing = true;
+        } else {
+          var index = vm.folder.children.indexOf(folder);
+          if (index !== -1) {
+            vm.folder.children.splice(index, 1);
+          }
         }
       });
     }
@@ -415,10 +422,14 @@ define([
      * @param {File} file - File object that was clicked
      */
     function onRightClick(e, file) {
-      if ( vm.selectedFiles.length === 0 || ( vm.selectedFiles.length > 0 && vm.selectedFiles.indexOf(file) === -1 ) ) {
-        targetFiles = [file];
+      if (file === null) {
+        targetFiles = [vm.folder];
       } else {
-        targetFiles = vm.selectedFiles;
+        if ( vm.selectedFiles.length === 0 || ( vm.selectedFiles.length > 0 && vm.selectedFiles.indexOf(file) === -1 ) ) {
+          targetFiles = [file];
+        } else {
+          targetFiles = vm.selectedFiles;
+        }
       }
     }
 
@@ -446,11 +457,9 @@ define([
     }
 
     /**
-     *
-     * @param folder
+     * Handle pasting of files into a folder
+     * @param folder - the folder in which to paste the files
      */
-
-    // TODO: Add parent for cleanup
     function onPaste(folder) {
       if (clipboardService.operation === "copy") {
         vm.onCopy({
@@ -487,6 +496,16 @@ define([
      */
     function canPaste() {
       return targetFiles.length === 1 && targetFiles[0].type === "folder" && clipboardService.get();
+    }
+
+    function selectAll() {
+      $scope.$apply(function() {
+        vm.selectedFiles = [];
+        for (var i = 0; i < vm.files.length; i++) {
+          vm.selectedFiles.push(vm.files[i]);
+        }
+        vm.onHighlight({selectedFiles: vm.selectedFiles});
+      });
     }
   }
 

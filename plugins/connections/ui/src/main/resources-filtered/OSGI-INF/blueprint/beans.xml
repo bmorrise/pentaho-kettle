@@ -34,32 +34,32 @@
              interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
              availability="optional"/>
 
-  <bean id="ConnectionDelegate" scope="singleton" class="org.pentaho.di.connections.ui.ConnectionDelegate" />
+  <bean id="ConnectionDelegate" scope="singleton" class="org.pentaho.di.connections.ui.dialog.ConnectionDelegate" />
 
   <bean id="VFSConnectionTreeDelegateExtension" scope="singleton"
-        class="org.pentaho.di.connections.ui.ConnectionTreeDelegateExtension">
+        class="org.pentaho.di.connections.ui.tree.ConnectionTreeDelegateExtension">
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
-  <bean id="VFSConnectionPopupMenuExtension" scope="singleton"
-        class="org.pentaho.di.connections.ui.ConnectionPopupMenuExtension">
+  <bean id="ConnectionPopupMenuExtension" scope="singleton"
+        class="org.pentaho.di.connections.ui.tree.ConnectionPopupMenuExtension">
     <argument ref="ConnectionDelegate" />
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
   <bean id="ConnectionViewTreeExtension" scope="singleton"
-        class="org.pentaho.di.connections.ui.ConnectionViewTreeExtension">
+        class="org.pentaho.di.connections.ui.tree.ConnectionViewTreeExtension">
     <argument ref="ConnectionDelegate" />
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
-  <bean id="VFSConnectionLifecycleListener"
-        class="org.pentaho.di.connections.ui.ConnectionLifecycleListener">
+  <bean id="ConnectionLifecycleListener"
+        class="org.pentaho.di.connections.ui.lifecycle.ConnectionLifecycleListener">
     <argument ref="metastoreLocator"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType" />
   </bean>
 
-  <service id="VFSConnectionPlugin"
+  <service id="ConnectionPlugin"
            interface="org.ops4j.pax.web.extender.whiteboard.ResourceMapping">
     <bean class="org.ops4j.pax.web.extender.whiteboard.runtime.DefaultResourceMapping">
       <property name="alias" value="/${project.artifactId}/${project.version}"/>
@@ -79,7 +79,7 @@
     </jaxrs:extensionMappings>
 
     <jaxrs:providers>
-      <bean class="org.pentaho.di.connections.ui.JsonProvider"/>
+      <bean class="org.pentaho.di.connections.ui.endpoints.JsonProvider"/>
     </jaxrs:providers>
 
   </jaxrs:server>

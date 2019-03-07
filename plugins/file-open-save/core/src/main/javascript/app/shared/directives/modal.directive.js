@@ -36,16 +36,33 @@ define([
           element.show();
           return $q(function(resolve, reject) {
             var buttons = element[0].getElementsByTagName('button');
+            var inputs = element[0].getElementsByTagName('input');
+            var inputValues = [];
+            for (var i = 0; i < inputs.length; i++) {
+              var input = angular.element(inputs[i]);
+              input[0].checked = false;
+              input.data("index", i);
+              input.bind("change", function() {
+                inputValues[this.getAttribute('id')] = this.checked;
+              });
+            }
             for (var i = 0; i < buttons.length; i++) {
               var button = angular.element(buttons[i]);
               button.data("index", i);
               button.bind("click", function() {
                 var value = this.getAttribute("value");
                 closeModal();
-                resolve(value);
+                resolve({
+                  values: inputValues,
+                  button: value
+                });
               });
             }
           });
+        }
+
+        function setBody(body) {
+          scope.body = body;
         }
 
         function closeModal() {
@@ -53,7 +70,7 @@ define([
           element.hide();
         }
 
-        modalService.add({id: attrs.id, open: openModal, close: closeModal});
+        modalService.add({id: attrs.id, open: openModal, close: closeModal, setBody: setBody});
       }
     };
   }

@@ -37,21 +37,26 @@ define([
     vm.canNext = canNext;
 
     function onInit() {
-      vm.data = $stateParams.data ? $stateParams.data : {};
-      vm.connectionDetails = i18n.get('connections.plugins.other.connectionDetails');
+      vm.connectionDetails = i18n.get('connections.summary.connectionDetails');
       vm.protocol = i18n.get('connections.plugins.other.protocol');
       vm.host = i18n.get('connections.plugins.other.host');
       vm.port = i18n.get('connections.plugins.other.port');
       vm.username = i18n.get('connections.plugins.other.username');
       vm.password = i18n.get('connections.plugins.other.password');
 
-      vm.data.mapping = {
-        "protocol": vm.protocol,
-        "host": vm.host,
-        "port": vm.port,
-        "username": vm.username,
-        "password": vm.password
-      }
+      vm.data = $stateParams.data ? $stateParams.data : {};
+      vm.data.sections = [];
+      vm.data.sections.push({
+          title: i18n.get('connections.plugins.other.connectionDetails'),
+          editLink: "otherstep1",
+          mapping: {
+            "protocol": vm.protocol,
+            "host": vm.host,
+            "port": vm.port,
+            "username": vm.username,
+            "password": vm.password
+          }
+        });
     }
 
     function canNext() {

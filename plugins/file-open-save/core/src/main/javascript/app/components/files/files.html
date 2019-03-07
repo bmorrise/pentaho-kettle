@@ -38,7 +38,7 @@
       </thead>
     </table>
   </div>
-  <div ng-hide="vm.loading" id="bodyWrapper" class="bodyWrapper" context="filesFolderContext">
+  <div ng-hide="vm.loading" id="bodyWrapper" class="bodyWrapper" context="filesFolderContext" ng-right-click="vm.onRightClick($event, null)">
     <table id="filesTableBody" ng-class="{searchTable: vm.search}">
       <tbody>
       <tr ng-repeat="file in vm.files | orderBy: file: vm.sortReverse: vm.compareFiles "

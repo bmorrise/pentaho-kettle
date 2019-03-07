@@ -32,20 +32,20 @@ define([
     controller: selectboxController
   };
 
-  selectboxController.$inject = [];
+  selectboxController.$inject = ["$document", "$scope"];
 
-  function selectboxController() {
+  function selectboxController($document, $scope) {
     var vm = this;
     vm.$onInit = onInit;
     vm.$onChanges = onChanges;
     vm.selectOption = selectOption;
     vm.toggleOptions = toggleOptions;
+    vm.onBodyClick = onBodyClick;
     vm.isShowOptions = false;
-
     vm.selectedValue = null;
 
     function onInit() {
-      // vm.selectedValue = vm.options && vm.options.length > 0 ? vm.options[0] : null;
+
     }
 
     function onChanges(changes) {
@@ -58,7 +58,15 @@ define([
       }
     }
 
-    function toggleOptions() {
+    function onBodyClick() {
+      $scope.$apply(function() {
+        vm.isShowOptions = false;
+      });
+
+    }
+
+    function toggleOptions($event) {
+      $event.stopPropagation();
       vm.isShowOptions = !vm.isShowOptions;
     }
 

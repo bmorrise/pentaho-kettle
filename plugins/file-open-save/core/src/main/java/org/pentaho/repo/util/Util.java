@@ -30,8 +30,8 @@ import java.util.regex.Pattern;
 public class Util {
 
   public static boolean isFiltered( String value, String filter ) {
-    filter = filter.replace(".", "\\.");
-    filter = filter.replace("*", ".*");
+    filter = filter.replace( ".", "\\." );
+    filter = filter.replace( "*", ".*" );
 
     return !Pattern.matches( filter, value );
   }

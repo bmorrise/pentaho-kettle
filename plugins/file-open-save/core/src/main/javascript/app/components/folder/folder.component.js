@@ -44,6 +44,7 @@ define([
       onOpen: "&",
       onMove: "&",
       onCopy: "&",
+      onDelete: "&",
       showRecents: "<",
       selectedFolder: "<",
       autoExpand: "<"
@@ -73,10 +74,11 @@ define([
     vm.onPaste = onPaste;
     vm.canPaste = canPaste;
     vm.onRightClick = onRightClick;
+    vm.onDeleteFolder = onDeleteFolder;
     vm.width = 0;
     vm.state = $state;
     vm.getId = getId;
-    var targetFolder;
+    vm.targetFolder = null;
 
     /**
      * Called whenever one-way bindings are updated.
@@ -86,16 +88,6 @@ define([
      */
     function onChanges(changes) {
       if (changes.selectedFolder) {
-        // var selectedFolder = changes.selectedFolder.currentValue;
-        // if (selectedFolder && selectedFolder.path) {
-        //   if (selectedFolder.path !== "Recents") {
-        //     if (vm.autoExpand) {
-        //       vm.autoExpand = false;
-        //       _openFolderTree(selectedFolder.path);
-        //     }
-        //     _selectFolderByPath(selectedFolder.path);
-        //   }
-        // }
         _setWidth();
       }
     }
@@ -273,13 +265,13 @@ define([
       if (clipboardService.operation === "copy") {
         vm.onCopy({
           from: clipboardService.get(),
-          to: targetFolder
+          to: vm.targetFolder
         });
       }
       if (clipboardService.operation === "cut") {
         vm.onMove({
           from: clipboardService.get(),
-          to: targetFolder
+          to: vm.targetFolder
         });
       }
       clipboardService.set(null, null);
@@ -290,7 +282,11 @@ define([
     }
 
     function onRightClick(folder) {
-      targetFolder = folder;
+      vm.targetFolder = folder;
+    }
+
+    function onDeleteFolder() {
+      vm.onDelete({folder: vm.targetFolder});
     }
   }
 

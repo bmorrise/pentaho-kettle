@@ -22,7 +22,7 @@
 
 package org.pentaho.repo.providers.local.model;
 
-import org.pentaho.repo.providers.Directory;
+import org.pentaho.repo.api.providers.Directory;
 import org.pentaho.repo.providers.local.LocalFileProvider;
 
 import java.io.IOException;

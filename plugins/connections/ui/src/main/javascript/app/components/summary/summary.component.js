@@ -42,7 +42,6 @@ define([
       vm.connectionType = i18n.get('connections.intro.connectionType');
       vm.connectionSummary = i18n.get('connections.summary.connectionSummary');
       vm.generalSettings = i18n.get('connections.summary.generalSettings');
-      vm.connectionDetails = i18n.get('connections.summary.connectionDetails');
       vm.description = i18n.get('connections.summary.description');
       vm.finishLabel = i18n.get('connections.summary.finishLabel');
       vm.data = $stateParams.data;
@@ -58,6 +57,7 @@ define([
     }
 
     function onEditClick(destination) {
+      vm.data.state = "modify";
       $state.go(destination, {data: vm.data, transition: "slideRight"});
     }
   }

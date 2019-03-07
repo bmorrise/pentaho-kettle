@@ -53,8 +53,7 @@ define(
           parsePath: parsePath,
           addFolder: addFolder,
           deleteFile: deleteFile,
-          renameFile: renameFile,
-          moveFile: moveFile
+          renameFile: renameFile
         };
 
         function findRootNode(tree, folder, subtree) {
@@ -119,13 +118,6 @@ define(
           var oldName = _getName(file.path);
           var newName = _getName(newPath);
           return helperService.httpPost([baseUrl, "rename", encodeURIComponent(file.objectId), encodeURIComponent(file.parent), encodeURIComponent(newName), file.type, oldName].join("/"));
-        }
-
-        function moveFile(file, newPath) {
-          var oldName = _getName(file.path);
-          var newName = _getName(newPath);
-          newPath = newPath.substr(0, newPath.lastIndexOf("/"));
-          return helperService.httpPost([baseUrl, "rename", encodeURIComponent(file.objectId), encodeURIComponent(newPath), encodeURIComponent(newName), file.type, oldName].join("/"));
         }
 
         function _getName(path) {

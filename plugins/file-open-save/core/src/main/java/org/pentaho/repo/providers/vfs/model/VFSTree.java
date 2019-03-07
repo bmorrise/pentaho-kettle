@@ -22,7 +22,7 @@
 
 package org.pentaho.repo.providers.vfs.model;
 
-import org.pentaho.repo.providers.Tree;
+import org.pentaho.repo.api.providers.Tree;
 
 import java.util.ArrayList;
 import java.util.List;

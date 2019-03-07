@@ -22,7 +22,7 @@
 
 package org.pentaho.repo.providers.local.model;
 
-import org.pentaho.repo.providers.Tree;
+import org.pentaho.repo.api.providers.Tree;
 import org.pentaho.repo.providers.local.LocalFileProvider;
 
 import java.util.ArrayList;

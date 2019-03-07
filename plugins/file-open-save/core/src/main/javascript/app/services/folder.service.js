@@ -148,9 +148,14 @@ define(
         function createFolder(folder) {
           return $q(function(resolve, reject) {
             ss.get(folder.provider).addFolder(folder).then(function(response) {
-              folder.new = false;
-              folder.date = response.data.date;
-              resolve();
+              var result = response.data;
+              if (result.status === "SUCCESS") {
+                folder.new = false;
+                folder.date = response.data.date;
+                resolve(result);
+              } else {
+                reject(result);
+              }
             }, function(response) {
               reject(response.status);
             });

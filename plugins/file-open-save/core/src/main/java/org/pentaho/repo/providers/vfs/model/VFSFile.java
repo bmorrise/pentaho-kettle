@@ -24,8 +24,8 @@ package org.pentaho.repo.providers.vfs.model;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.pentaho.repo.providers.BaseEntity;
-import org.pentaho.repo.providers.File;
+import org.pentaho.repo.api.providers.BaseEntity;
+import org.pentaho.repo.api.providers.File;
 import org.pentaho.repo.providers.vfs.VFSFileProvider;
 
 import java.util.Date;

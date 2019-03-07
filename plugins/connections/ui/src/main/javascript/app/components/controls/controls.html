@@ -12,10 +12,13 @@
       </button>
     </div>
     <div class="rightPane">
-      <button ng-if="vm.next" id="next" class="right margin_left_10 primary" type="button" ng-click="vm.onNext()" ng-disabled="!vm.canNext">
+      <button ng-if="vm.apply" class="right primary" type="button" ng-click="vm.onApply()" ng-disabled="!vm.canNext">
+        <span>{{::vm.applyLabel}}</span>
+      </button>
+      <button ng-if="vm.next && !vm.apply" id="next" class="right margin_left_10 primary" type="button" ng-click="vm.onNext()" ng-disabled="!vm.canNext">
         <span>{{::vm.nextLabel}}</span>
       </button>
-      <button ng-if="vm.back" class="right secondary" type="button" ng-click="vm.onBack()">
+      <button ng-if="vm.back && !vm.apply" class="right secondary" type="button" ng-click="vm.onBack()">
         <span>{{::vm.backLabel}}</span>
       </button>
       <button ng-if="vm.finish" class="right primary" type="button" ng-click="vm.onFinish()">

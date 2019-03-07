@@ -24,6 +24,7 @@ define([
 
   var options = {
     bindings: {
+      apply: "<",
       test: "<",
       back: "<",
       next: "<",
@@ -32,6 +33,7 @@ define([
       data: "<",
       canNext: "<",
       onTest: "&",
+      onApply: "&",
       nextValidation: "<"
     },
     controllerAs: "vm",
@@ -48,14 +50,28 @@ define([
     vm.onFinish = onFinish;
     vm.onClose = onClose;
     vm.onTestClick = onTestClick;
-    vm.backLabel = i18n.get('connections.controls.backLabel');
-    vm.nextLabel = i18n.get('connections.controls.nextLabel');
-    vm.finishLabel = i18n.get('connections.controls.finishLabel');
-    vm.closeLabel = i18n.get('connections.controls.closeLabel');
-    vm.testLabel = i18n.get('connections.controls.testLabel');
+    vm.onApply = onApply;
     vm.$onInit = onInit;
 
     function onInit() {
+      vm.backLabel = i18n.get('connections.controls.backLabel');
+      vm.nextLabel = i18n.get('connections.controls.nextLabel');
+      vm.finishLabel = i18n.get('connections.controls.finishLabel');
+      vm.closeLabel = i18n.get('connections.controls.closeLabel');
+      vm.testLabel = i18n.get('connections.controls.testLabel');
+      vm.applyLabel = i18n.get('connections.controls.applyLabel');
+    }
+
+    function onApply() {
+      if (vm.nextValidation) {
+        vm.nextValidation().then(function(isValid) {
+          if (isValid) {
+            $state.go("summary", {data: vm.data, transition: "slideLeft"});
+          }
+        });
+      } else {
+        $state.go("summary", {data: vm.data, transition: "slideLeft"});
+      }
     }
 
     function onBack() {
@@ -64,7 +80,7 @@ define([
 
     function onNext() {
       if (vm.nextValidation) {
-        vm.nextValidation(function(isValid) {
+        vm.nextValidation().then(function(isValid) {
           if (isValid) {
             $state.go(vm.next, {data: vm.data, transition: "slideLeft"});
           }

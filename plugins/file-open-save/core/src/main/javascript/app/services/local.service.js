@@ -55,7 +55,6 @@ define(
           parsePath: parsePath,
           deleteFiles: deleteFiles,
           renameFile: renameFile,
-          moveFiles: moveFiles,
           isCopy: isCopy,
           getCopyFromParameters: getCopyFromParameters,
           getCopyToParameters: getCopyToParameters
@@ -129,14 +128,6 @@ define(
 
         function renameFile(file, newPath) {
           return helperService.httpPost([baseUrl, "renameFile"].join("/") + "?provider="+file.provider+"&path="+file.path+"&newPath="+newPath);
-        }
-
-        function moveFiles(from, to) {
-          var paths = [];
-          for (var i = 0; i < from.length; i++) {
-            paths.push(from[i].path);
-          }
-          return helperService.httpPost([baseUrl, "moveFiles"].join("/") + "?provider=local&newPath="+to.path, paths);
         }
 
         function isCopy(from, to) {

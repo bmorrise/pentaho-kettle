@@ -33,7 +33,7 @@ define(
     function (i18n, servicesService, helperService, modalService, utils) {
       "use strict";
 
-      var factoryArray = [servicesService.name, helperService.name, modalService.name, "$q", "$interval", factory];
+      var factoryArray = [servicesService.name, helperService.name, modalService.name, "$q", "$interval", "$timeout", factory];
       var module = {
         name: "fileService",
         factory: factoryArray
@@ -46,19 +46,22 @@ define(
        *
        * @return {Object} The fileService api
        */
-      function factory(ss, helperService, modalService, $q, $interval) {
+      function factory(ss, helperService, modalService, $q, $interval, $timeout) {
         var baseUrl = "/cxf/browser";
         return {
           deleteFiles: deleteFiles,
           renameFile: renameFile,
           moveFiles: moveFiles,
           copyFiles: copyFiles,
-          isCopy: isCopy,
-          getStatus: getStatus,
-          handleStatus: handleStatus,
-          proceed: proceed
+          isCopy: isCopy
         };
 
+        /**
+         *
+         * @param folder
+         * @param files
+         * @returns {*}
+         */
         function deleteFiles(folder, files) {
           return $q(function (resolve, reject) {
             ss.get(folder.provider).deleteFiles(files).then(function (response) {
@@ -73,81 +76,209 @@ define(
           });
         }
 
+        /**
+         *
+         * @param file
+         * @param newPath
+         * @returns {*}
+         */
         function renameFile(file, newPath) {
           return $q(function (resolve, reject) {
             ss.get(file.provider).renameFile(file, newPath).then(function (response) {
-              resolve();
+              var result = response.data;
+              if (result.status === "SUCCESS") {
+                resolve(result);
+              } else {
+                reject(result);
+              }
             }, function (response) {
               reject(response.status);
             });
           });
         }
 
+        /**
+         *
+         * @param from
+         * @param to
+         * @returns {*}
+         */
         function moveFiles(from, to) {
-          return $q(function (resolve, reject) {
-            ss.get(to.provider).moveFiles(from, to).then(function (response) {
-              resolve(response.data);
-            }, function (response) {
-              reject(response.status);
+          return $q(function(resolve, reject) {
+            startOperation(from, to, 0, "", moveFile, resolve, reject);
+          });
+        }
+
+        function _getOverwrite(result) {
+          var overwrite = "";
+          if (result.values['apply-all']) {
+            switch (result.button) {
+              case "rename":
+                overwrite = "rename_all";
+                break;
+              case "overwrite":
+                overwrite = "all";
+                break;
+              case "skip":
+                overwrite = "skip_all";
+                break;
+            }
+          } else {
+            switch (result.button) {
+              case "rename":
+                overwrite = "rename_one";
+                break;
+              case "overwrite":
+                overwrite = "one";
+                break;
+              case "skip":
+                overwrite = "skip";
+                break;
+            }
+          }
+          return overwrite;
+        }
+
+        function handleFileExistsCheck(to, newPath) {
+          return $q(function(resolve, reject) {
+            var parameters = {
+              provider: to.provider,
+              connection: to.connection,
+              path: newPath
+            };
+            helperService.httpGet([baseUrl, "fileExists"].join("/") + utils.buildParameters(parameters)).then(function (result) {
+              resolve(result.data.data);
             });
           });
         }
 
-        // TODO: Refactor other methods so they just get the parameters
-        function copyFiles(from, to) {
-          var paths = [];
-          for (var i = 0; i < from.length; i++) {
-            paths.push(from[i].path);
-          }
-          var fromParameters = ss.get(from[0].provider).getCopyFromParameters(from[0]);
+        function handleProgressModal(fromPath, toPath, index) {
+          modalService.open("file-progress", "Waiting...", "Moving file " + fromPath + " to " + toPath).then(function (result) {
+            // TODO: Handle cancelling (probably hold a cancel in the service and run it)
+          });
+        }
+
+        function handleCollision(filename) {
+          return $q(function(resolve, reject) {
+            modalService.close("file-progress");
+            modalService.open("overwrite-warning",
+                i18n.get("file-open-save-plugin.error.file-exists.title"),
+                i18n.get("file-open-save-plugin.error.file-exists.body", {name: filename})).then(function (result) {
+                  console.log("here", result);
+              resolve(result);
+            });
+          });
+        }
+
+        function moveFile(from, to, path, overwrite) {
+          handleProgressModal(from[0].path, path, index);
+          // TODO: Refactor other methods so they just get the parameters
+          var fromParameters = ss.get(from.provider).getCopyFromParameters(from);
           var toParameters = ss.get(to.provider).getCopyToParameters(to);
           var parameters = utils.concatParameters(fromParameters, toParameters);
-          parameters["newPath"] = to.path;
-          parameters["fromProvider"] = from[0].provider;
+          parameters["newPath"] = path;
+          parameters["fromProvider"] = from.provider;
           parameters["toProvider"] = to.provider;
-          return helperService.httpPost([baseUrl, "copyFiles"].join("/") + utils.buildParameters(parameters), paths);
+          parameters["path"] = from.path;
+          parameters["overwrite"] = overwrite;
+          return helperService.httpPost([baseUrl, "renameFile"].join("/") + utils.buildParameters(parameters));
         }
 
-        function isCopy(from, to) {
-          return ss.get(from.provider).isCopy(from, to) && ss.get(to.provider).isCopy(from, to);
+        /**
+         *
+         * @param from
+         * @param to
+         * @returns {Promise}
+         */
+        function copyFiles(from, to) {
+          return $q(function(resolve, reject) {
+            startOperation(from, to, 0, copyFile, "", resolve, reject);
+          });
         }
 
-        function getStatus(id) {
-          return helperService.httpGet([baseUrl, "status", id].join("/"));
-        }
-
-        function proceed(id, overwrite) {
-          return helperService.httpGet([baseUrl, "proceed", id].join("/") + "?overwrite=" + overwrite);
-        }
-
-        function handleStatus(id) {
-          return $q(function (resolve, reject) {
-            var showingModal = false;
-            // TODO: Make this used with copy as well
-            var status = $interval(function () {
-              getStatus(id).then(function (response) {
-                var result = response.data;
-                if (result.status === "FILE_COLLISION" && showingModal === false) {
-                  showingModal = true;
-                  var name = utils.getFilename(result.data.from);
-                  modalService.open("overwrite-warning",
-                      i18n.get("file-open-save-plugin.error.file-exists.title"),
-                      i18n.get("file-open-save-plugin.error.file-exists.body", {name: name})).then(function (result) {
-                    proceed(id, result).then(function (response) {
-                      showingModal = false;
-                    });
+        function startOperation(from, to, index, operation, overwrite, resolve, reject) {
+          if (index === from.length) {
+            modalService.close("file-progress");
+            resolve();
+            return;
+          } else if (index === -1) {
+            modalService.close("file-progress");
+            reject();
+            return;
+          }
+          var filename = utils.getFilename(from[index].path);
+          var newPath = to.path + "/" + filename;
+          switch (overwrite) {
+            case "one":
+              console.log("one");
+              overwrite = "";
+            case "all":
+              console.log("all");
+              operation(from[index], to, newPath, true).then(function (result) {
+                startOperation(from, to, ++index, operation, overwrite, resolve, reject);
+              });
+              break;
+            case "rename_one":
+              console.log("rename_one");
+              overwrite = "";
+            case "rename_all":
+              console.log("rename_all");
+              var parameters = {
+                provider: to.provider,
+                connection: to.connection,
+                path: newPath
+              };
+              helperService.httpGet([baseUrl, "getNewName"].join("/") + utils.buildParameters(parameters)).then(function(result) {
+                var renamedPath = result.data.data;
+                operation(from[index], to, renamedPath, true).then(function (result) {
+                  startOperation(from, to, ++index, operation, overwrite, resolve, reject);
+                });
+              });
+              break;
+            case "skip":
+              overwrite = "";
+            case "skip_all":
+              startOperation(from, to, ++index, operation, overwrite, resolve, reject);
+              break;
+            case "":
+              handleFileExistsCheck(to, newPath).then(function(exists) {
+                if (!exists) {
+                  operation(from[index], to, newPath, false).then(function (result) {
+                    startOperation(from, to, ++index, operation, overwrite, resolve, reject);
+                  });
+                } else {
+                  handleCollision(filename).then(function(result) {
+                    overwrite = _getOverwrite(result);
+                    startOperation(from, to, index, operation, overwrite, resolve, reject);
                   });
                 }
-                if (result.status === "PENDING") {
-                  // TODO: This is where the pending status will show up on the dialog
-                }
-                if (result.status === "SUCCESS" || result.status === "ERROR") {
-                  $interval.cancel(status);
-                  resolve(result.data);
-                }
               });
-            }, 100);
-          });
+              break;
+          }
+        }
+
+        function copyFile(from, to, path, overwrite) {
+          handleProgressModal(from.path, path);
+          // TODO: Refactor other methods so they just get the parameters
+          var fromParameters = ss.get(from.provider).getCopyFromParameters(from);
+          var toParameters = ss.get(to.provider).getCopyToParameters(to);
+          var parameters = utils.concatParameters(fromParameters, toParameters);
+          parameters["newPath"] = path;
+          parameters["fromProvider"] = from.provider;
+          parameters["toProvider"] = to.provider;
+          parameters["path"] = from.path;
+          parameters["overwrite"] = overwrite;
+          return helperService.httpPost([baseUrl, "copyFile"].join("/") + utils.buildParameters(parameters));
+        }
+
+        /**
+         *
+         * @param from
+         * @param to
+         * @returns {*}
+         */
+        function isCopy(from, to) {
+          return ss.get(from.provider).isCopy(from, to) && ss.get(to.provider).isCopy(from, to);
         }
 
         //TODO: Add a rename function to folders so I can traverse and rename
@@ -251,4 +382,5 @@ define(
         //   }
         // });
       }
-    });
+    })
+;

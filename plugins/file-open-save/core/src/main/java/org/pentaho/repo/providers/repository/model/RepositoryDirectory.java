@@ -23,7 +23,7 @@
 package org.pentaho.repo.providers.repository.model;
 
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
-import org.pentaho.repo.providers.Directory;
+import org.pentaho.repo.api.providers.Directory;
 import org.pentaho.repo.providers.repository.RepositoryFileProvider;
 
 /**

@@ -22,13 +22,12 @@
 
 package org.pentaho.repo.controller;
 
-import org.pentaho.repo.providers.File;
-import org.pentaho.repo.providers.FileProvider;
-import org.pentaho.repo.providers.InvalidFileProviderException;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Result;
-import org.pentaho.repo.providers.Tree;
-import org.pentaho.repo.providers.processor.Processor;
+import org.pentaho.repo.api.providers.File;
+import org.pentaho.repo.api.providers.FileProvider;
+import org.pentaho.repo.api.providers.exception.InvalidFileProviderException;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Result;
+import org.pentaho.repo.api.providers.Tree;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,11 +41,9 @@ import java.util.List;
 public class FileBrowserController {
 
   private List<FileProvider> fileProviders = new ArrayList<>();
-  private Processor processor;
 
-  public FileBrowserController( List<FileProvider> fileProviders, Processor processor ) {
+  public FileBrowserController( List<FileProvider> fileProviders ) {
     this.fileProviders = fileProviders;
-    this.processor = processor;
   }
 
   private FileProvider getFileProvider( String type ) throws InvalidFileProviderException {
@@ -82,9 +79,9 @@ public class FileBrowserController {
     }
   }
 
-  public Result renameFile( String type, String path, String newPath, Properties properties ) {
+  public Result getNewName( String type, String path, Properties properties ) {
     try {
-      return getFileProvider( type ).renameFile( path, newPath, "", properties );
+      return getFileProvider( type ).getNewName( path, properties );
     } catch ( InvalidFileProviderException e ) {
       return null;
     }
@@ -98,44 +95,75 @@ public class FileBrowserController {
     }
   }
 
-  public Result moveFiles( String type, List<String> paths, String newPath, Properties properties ) {
+  public Result fileExists( String provider, String path, Properties properties ) {
     try {
-      return getFileProvider( type ).moveFiles( paths, newPath, false, properties );
+      return getFileProvider( provider ).fileExists( path, properties );
     } catch ( InvalidFileProviderException e ) {
       return null;
     }
   }
 
-  public Result copyFiles( String fromProvider, String toProvider, List<String> paths, String newPath,
-                           Properties properties, boolean overwrite ) {
+  // TODO: If from the same provider run the native copy
+  public Result renameFile( String fromProvider, String toProvider, String path, String newPath,
+                           boolean overwrite, Properties properties ) {
+    try {
+      FileProvider fileProvider = getFileProvider( fromProvider );
+      boolean isSame = fileProvider.isSame( toProvider, properties );
+      if ( isSame ) {
+        // TODO: This shouldn't be in here, nor should the other one a few lines down
+        properties.put( "connection", properties.getString( "fromConnection" ) );
+        return fileProvider.renameFile( path, newPath, overwrite, properties );
+      } else {
+        return renameBetweenProviders( fromProvider, toProvider, path, newPath, properties, overwrite );
+      }
+    } catch ( InvalidFileProviderException e ) {
+      return null;
+    }
+  }
 
+  // TODO: If from the same provider run the native copy
+  public Result copyFile( String fromProvider, String toProvider, String path, String newPath,
+                           boolean overwrite, Properties properties ) {
+    try {
+      FileProvider fileProvider = getFileProvider( fromProvider );
+      boolean isSame = fileProvider.isSame( toProvider, properties );
+      if ( isSame ) {
+        // TODO: This shouldn't be in here, nor should the other one a few lines down
+        properties.put( "connection", properties.getString( "fromConnection" ) );
+        return fileProvider.copyFile( path, newPath, overwrite, properties );
+      } else {
+        return copyBetweenProviders( fromProvider, toProvider, path, newPath, properties, overwrite );
+      }
+    } catch ( InvalidFileProviderException e ) {
+      return null;
+    }
+  }
+
+  public Result renameBetweenProviders( String fromProvider, String toProvider, String path, String newPath,
+                                      Properties properties, boolean overwrite ) {
+    return null;
+  }
+
+  public Result copyBetweenProviders( String fromProvider, String toProvider, String path, String newPath,
+                                      Properties properties, boolean overwrite ) {
     Result.Status status = Result.Status.SUCCESS;
-
     List<String> copiedFiles = new ArrayList<>();
     FileProvider fromFileProvider = null;
     FileProvider toFileProvider = null;
     try {
       fromFileProvider = getFileProvider( fromProvider );
       toFileProvider = getFileProvider( toProvider );
-      for ( String path : paths ) {
-        String fileName = path.substring( path.lastIndexOf( "/" ), path.length() );
-        String copyPath = newPath + "/" + fileName;
-        try ( InputStream inputStream = fromFileProvider
-          .readFile( path, Properties.create( "connection", properties.getString( "fromConnection" ) ) ) ) {
-          toFileProvider.writeFile( inputStream, copyPath,
-            Properties.create( "connection", properties.getString( "toConnection" ) ), overwrite );
-          copiedFiles.add( path );
-        } catch ( IOException e ) {
-          status = Result.Status.FILE_COLLISION;
-        }
+      try ( InputStream inputStream = fromFileProvider
+        .readFile( path, Properties.create( "connection", properties.getString( "fromConnection" ) ) ) ) {
+        toFileProvider.writeFile( inputStream, newPath,
+          Properties.create( "connection", properties.getString( "toConnection" ) ), overwrite );
+        copiedFiles.add( path );
+      } catch ( IOException e ) {
+        status = Result.Status.FILE_COLLISION;
       }
     } catch ( InvalidFileProviderException ignored ) {
       // Don't add it to the list
     }
     return new Result( status, "Copy files complete", copiedFiles );
-  }
-
-  public Result getStatus( String uuid ) {
-    return processor.getStatus( uuid );
   }
 }

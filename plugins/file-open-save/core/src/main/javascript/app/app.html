@@ -1,4 +1,4 @@
-<modal id="overwrite-warning">
+<modal id="overwrite-warning" style="width:600px" class="noselect">
   <div class="title headerText">
     {{title}}
   </div>
@@ -6,20 +6,34 @@
     {{body}}
   </div>
   <div class="buttons">
-    <button class="primary" value="">
+    <div style="float:left">
+      <label class="container">Apply to All
+        <input type="checkbox" id="apply-all">
+        <span class="checkmark"></span>
+      </label>
+    </div>
+    <button class="primary" value="skip">
       <span>Skip</span>
     </button>
-    <button class="primary" value="all">
-      <span>Overwrite All</span>
+    <button class="primary" value="overwrite">
+      <span>Overwrite</span>
     </button>
-    <button class="primary" value="one">
-      <span>Overwrite One</span>
+    <button class="primary" value="rename">
+      <span>Rename</span>
     </button>
-    <button class="primary" value="rename_all">
-      <span>Rename All</span>
-    </button>
-    <button class="primary" value="rename_one">
-      <span>Rename One</span>
+  </div>
+</modal>
+<!-- TODO: Move this to a modals component -->
+<modal id="file-progress" style="width:600px" class="noselect">
+  <div class="title headerText">
+    {{title}}
+  </div>
+  <div class="body">
+    {{body}}
+  </div>
+  <div class="buttons">
+    <button class="primary" value="cancel">
+      <span>Cancel</span>
     </button>
   </div>
 </modal>
@@ -30,7 +44,7 @@
     error-folder="vm.files.length === 0 ? vm.folder : vm.files[0]"
     on-error-confirm="vm.confirmError()"
     on-error-cancel="vm.cancelError()"
-    key></error>
+    key class="noselect"></error>
 <loading ng-show="vm.loading" title="vm.loadingTitle" message="vm.loadingMessage"></loading>
 <div class="dialogWrapper noselect" ng-class="[vm.state.current.name, {hasError : vm.showError}]" ng-hide="vm.loading">
   <div class="header">
@@ -61,7 +75,7 @@
       <!--<div class="addDelete" ng-if="vm.state.is('save') || vm.state.is('selectFolder')">-->
       <div class="addDelete">
         <input type="button" class="refreshFolder" ng-click="vm.onRefreshFolder()" title="{{::vm.refreshFolder}}" ng-disabled="vm.refreshDisabled()"/>
-        <input type="button" class="deleteFolder" ng-click="vm.onDeleteFile()" title="{{::vm.removeText}}" ng-disabled="vm.deleteDisabled()"/>
+        <input type="button" class="deleteFolder" ng-click="vm.onDeleteFiles()" title="{{::vm.removeText}}" ng-disabled="vm.deleteDisabled()"/>
         <input type="button" class="addFolder" ng-click="vm.onAddFolder()" title="{{::vm.addFolderText}}" ng-disabled="vm.addDisabled()"/>
         <input type="button" class="upDirectory" ng-click="vm.onUpDirectory()" title="{{::vm.upDirectory}}" ng-disabled="vm.upDisabled()"/>
         <input type="button" class="backHistory" ng-click="vm.onBackHistory()" title="{{::vm.backHistory}}" ng-disabled="vm.backHistoryDisabled()"/>
@@ -75,9 +89,10 @@
           on-select="vm.selectFolder(selectedFolder)"
           show-recents="vm.showRecents"
           selected-folder="vm.folder"
-          ng-class="{dark: vm.file !== null}"
+          ng-class="{dark: vm.files.length !== 0}"
           on-move="vm.onMoveFiles(from, to)"
           on-copy="vm.onCopyFiles(from, to)"
+          on-delete="vm.onDeleteFiles([folder])"
           tree="vm.tree"></folder>
     </div>
 
@@ -107,7 +122,7 @@
           on-copy="vm.onCopyFiles(from, to)"
           on-add-folder="vm.onAddFolder()"
           on-create-folder="vm.onCreateFolder(folder)"
-          on-delete="vm.onDeleteFile(files)"
+          on-delete="vm.onDeleteFiles(files)"
           loading="vm.fileLoading"></files>
     </div>
   </div>

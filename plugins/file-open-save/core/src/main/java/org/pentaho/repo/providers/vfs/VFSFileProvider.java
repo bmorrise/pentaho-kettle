@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.Selectors;
 import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.ConnectionProvider;
@@ -37,14 +38,11 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.repo.providers.File;
-import org.pentaho.repo.providers.FileProvider;
-import org.pentaho.repo.providers.FromTo;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Result;
-import org.pentaho.repo.providers.Utils;
-import org.pentaho.repo.providers.processor.Process;
-import org.pentaho.repo.providers.processor.Processor;
+import org.pentaho.repo.api.providers.File;
+import org.pentaho.repo.api.providers.FileProvider;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Result;
+import org.pentaho.repo.api.providers.Utils;
 import org.pentaho.repo.providers.vfs.model.VFSDirectory;
 import org.pentaho.repo.providers.vfs.model.VFSFile;
 import org.pentaho.repo.providers.vfs.model.VFSLocation;
@@ -66,9 +64,10 @@ public class VFSFileProvider implements FileProvider {
   public static final String NAME = "Environments";
   public static final String TYPE = "vfs";
   public static final String CONNECTION = "connection";
+  public static final String FROM_CONNECTION = "fromConnection";
+  public static final String TO_CONNECTION = "toConnection";
 
   private Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
-  private final Processor processor;
 
   @Override public String getName() {
     return NAME;
@@ -76,10 +75,6 @@ public class VFSFileProvider implements FileProvider {
 
   @Override public String getType() {
     return TYPE;
-  }
-
-  public VFSFileProvider( Processor processor ) {
-    this.processor = processor;
   }
 
   @Override public VFSTree getTree() {
@@ -97,6 +92,7 @@ public class VFSFileProvider implements FileProvider {
         vfsLocation.setName( connectionDetails.getName() );
         vfsLocation.setRoot( NAME );
         vfsLocation.setHasChildren( true );
+        vfsLocation.setCanDelete( true );
         vfsTree.addChild( vfsLocation );
 
         VFSConnectionDetails vfsConnectionDetails = (VFSConnectionDetails) connectionDetails;
@@ -177,36 +173,45 @@ public class VFSFileProvider implements FileProvider {
     return true;
   }
 
-  @Override public Result renameFile( String path, String newPath, String overwrite, Properties properties ) {
+  @Override public Result renameFile( String path, String newPath, boolean overwrite, Properties properties ) {
     String connection = properties.getString( CONNECTION );
     try {
       FileObject fileObject = KettleVFS.getFileObject( path, new Variables(), VFSHelper.getOpts( path, connection ) );
       FileObject renameObject =
         KettleVFS.getFileObject( newPath, new Variables(), VFSHelper.getOpts( path, connection ) );
-      if ( fileObject.canRenameTo( renameObject ) ) {
-        fileObject.moveTo( renameObject );
-        return new Result( Result.Status.SUCCESS, "Rename File Completed", renameObject.getName().getPath() );
+      if ( overwrite ) {
+        if ( renameObject.exists() ) {
+          renameObject.delete();
+        }
       }
-    } catch ( KettleFileException | FileSystemException kfe ) {
-      // Do something smart here
+      fileObject.moveTo( renameObject );
+      return Result.success( "Success renaming file", newPath );
+    } catch ( KettleFileException | FileSystemException e ) {
+      return Result.error( "Error renaming file", path );
     }
-    return new Result( Result.Status.ERROR, "Rename File Completed", null );
   }
 
-  @Override public Result moveFiles( List<String> paths, String newPath, boolean overwrite, Properties properties ) {
-    String uuid = processor.submit( new Process() {
-      @Override public void run() {
-        List<String> moved = new ArrayList<>();
-        for ( String path : paths ) {
-          String movePath = newPath + path.substring( path.lastIndexOf( "/" ), path.length() );
-          setStatus( new Result( Result.Status.PENDING, "Moving Files In Progress", new FromTo( path, movePath ) ) );
-          Result result = renameFile( path, movePath, "", properties );
-          moved.add( path );
-        }
-        setStatus( new Result( Result.Status.SUCCESS, "Moving Files Complete", moved ) );
-      }
-    } );
-    return new Result( Result.Status.PENDING, "Moving Files Initiated", uuid );
+  @Override public Result copyFile( String path, String newPath, boolean overwrite, Properties properties ) {
+    String connection = properties.getString( CONNECTION );
+    try {
+      FileObject fileObject = KettleVFS.getFileObject( path, new Variables(), VFSHelper.getOpts( path, connection ) );
+      FileObject copyObject =
+        KettleVFS.getFileObject( newPath, new Variables(), VFSHelper.getOpts( path, connection ) );
+      copyObject.copyFrom( fileObject, Selectors.SELECT_SELF );
+      return Result.success( "Success copying file", path );
+    } catch ( KettleFileException | FileSystemException e ) {
+      return Result.error( "Error copying file", path );
+    }
+  }
+
+  @Override public Result fileExists( String path, Properties properties ) {
+    String connection = properties.getString( CONNECTION );
+    try {
+      FileObject fileObject = KettleVFS.getFileObject( path, new Variables(), VFSHelper.getOpts( path, connection ) );
+      return Result.success( "File exists", fileObject.exists() );
+    } catch ( KettleFileException | FileSystemException e ) {
+      return Result.success( "Error", null );
+    }
   }
 
   @Override public InputStream readFile( String path, Properties properties ) {
@@ -238,5 +243,33 @@ public class VFSFileProvider implements FileProvider {
       }
     }
     return false;
+  }
+
+  @Override public boolean isSame( String provider, Properties properties ) {
+    return provider.equals( TYPE ) && properties.getString( FROM_CONNECTION )
+      .equals( properties.getString( TO_CONNECTION ) );
+  }
+
+  @Override public Result getNewName( String path, Properties properties ) {
+    String connection = properties.getString( CONNECTION );
+    String extension = Utils.getExtension( path );
+    String parent = Utils.getParent( path );
+    String name = Utils.getName( path ).replace( "." + extension, "" );
+    int i = 1;
+    String testName = path;
+    try {
+      while ( KettleVFS.getFileObject( testName, new Variables(), VFSHelper.getOpts( testName, connection ) )
+        .exists() ) {
+        if ( Utils.isValidExtension( extension ) ) {
+          testName = parent + name + " " + String.valueOf( i ) + "." + extension;
+        } else {
+          testName = path + " " + String.valueOf( i );
+        }
+        i++;
+      }
+    } catch ( KettleFileException | FileSystemException e ) {
+      return Result.error( "Error getting new name", testName );
+    }
+    return Result.success( "Got new name", testName );
   }
 }

@@ -39,14 +39,12 @@ define([
           });
         });
         angular.element($document).bind('click', function (event) {
-          var target = angular.element(event.target);
           contextMenu.css({
             'display': 'none'
           });
         });
         angular.element($document).bind('keydown', function (event) {
           if (event.keyCode === 27) {
-            var target = angular.element(event.target);
             contextMenu.css({
               'display': 'none'
             });

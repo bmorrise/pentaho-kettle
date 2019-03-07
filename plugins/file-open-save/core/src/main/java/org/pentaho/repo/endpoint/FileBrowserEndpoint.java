@@ -29,11 +29,8 @@ import org.pentaho.di.core.exception.KettleTransException;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.repo.controller.FileBrowserController;
 import org.pentaho.repo.controller.RepositoryBrowserController;
-import org.pentaho.repo.providers.FileOpts;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Tree;
-import org.pentaho.repo.providers.processor.Process;
-import org.pentaho.repo.providers.processor.Processor;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Tree;
 import org.pentaho.repo.providers.repository.model.RepositoryDirectory;
 
 import javax.ws.rs.Consumes;
@@ -57,37 +54,12 @@ public class FileBrowserEndpoint {
 
   private final RepositoryBrowserController repositoryBrowserController;
   private final FileBrowserController fileBrowserController;
-  private final Processor processor;
 
   // TODO: Move properties into the post p
   public FileBrowserEndpoint( RepositoryBrowserController repositoryBrowserController,
-                              FileBrowserController fileBrowserController, Processor processor ) {
+                              FileBrowserController fileBrowserController ) {
     this.repositoryBrowserController = repositoryBrowserController;
     this.fileBrowserController = fileBrowserController;
-    this.processor = processor;
-  }
-
-  @GET
-  @Path( "/status/{uuid}" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response getStatus( @PathParam( "uuid" ) String uuid ) {
-    return Response.ok( processor.getStatus( uuid ) ).build();
-  }
-
-  @GET
-  @Path( "/cancel/{uuid}" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response cancel( @PathParam( "uuid" ) String uuid ) {
-    return Response.ok( processor.cancel( uuid ) ).build();
-  }
-
-  @GET
-  @Path( "/proceed/{uuid}" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response cancel( @PathParam( "uuid" ) String uuid, @QueryParam( "overwrite" ) String overwrite ) {
-    Properties properties = new Properties();
-    properties.put( FileOpts.OVERWRITE, overwrite );
-    return Response.ok( processor.proceed( uuid, properties ) ).build();
   }
 
   @GET
@@ -135,36 +107,54 @@ public class FileBrowserEndpoint {
   @POST
   @Path( "/renameFile" )
   @Produces( { MediaType.APPLICATION_JSON } )
-  public Response renameFile( @QueryParam( "provider" ) String type, @QueryParam( "connection" ) String connection,
-                              @QueryParam( "path" ) String path, @QueryParam( "newPath" ) String newPath ) {
-    return Response
-      .ok( fileBrowserController.renameFile( type, path, newPath, Properties.create( "connection", connection ) ) )
-      .build();
-  }
-
-  @POST
-  @Path( "/moveFiles" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response renameFile( @QueryParam( "provider" ) String provider, @QueryParam( "connection" ) String connection,
-                              @QueryParam( "newPath" ) String newPath, List<String> paths ) {
-    return Response
-      .ok( fileBrowserController.moveFiles( provider, paths, newPath, Properties.create( "connection", connection ) ) )
-      .build();
-  }
-
-  @POST
-  @Path( "/copyFiles" )
-  @Produces( { MediaType.APPLICATION_JSON } )
   public Response renameFile( @QueryParam( "fromProvider" ) String fromProvider,
                               @QueryParam( "fromConnection" ) String fromConnection,
                               @QueryParam( "toProvider" ) String toProvider,
                               @QueryParam( "toConnection" ) String toConnection,
                               @QueryParam( "newPath" ) String newPath,
-                              @QueryParam( "overwrite" ) Boolean overwrite, List<String> paths ) {
+                              @QueryParam( "overwrite" ) Boolean overwrite,
+                              @QueryParam( "path" ) String path ) {
+    overwrite = overwrite != null ? overwrite : false;
+    return Response.ok( fileBrowserController.renameFile( fromProvider, toProvider, path, newPath, overwrite,
+      Properties.create( "fromConnection", fromConnection, "toConnection", toConnection ) ) ).build();
+  }
 
-    return Response.ok( fileBrowserController.copyFiles( fromProvider, toProvider, paths, newPath,
-      Properties.create( "fromConnection", fromConnection, "toConnection", toConnection ),
-      overwrite != null ? overwrite : false ) ).build();
+  @POST
+  @Path( "/copyFile" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response copyFile( @QueryParam( "fromProvider" ) String fromProvider,
+                              @QueryParam( "fromConnection" ) String fromConnection,
+                              @QueryParam( "toProvider" ) String toProvider,
+                              @QueryParam( "toConnection" ) String toConnection,
+                              @QueryParam( "newPath" ) String newPath,
+                              @QueryParam( "overwrite" ) Boolean overwrite,
+                              @QueryParam( "path" ) String path ) {
+
+    overwrite = overwrite != null ? overwrite : false;
+    return Response.ok( fileBrowserController.copyFile( fromProvider, toProvider, path, newPath, overwrite,
+      Properties.create( "fromConnection", fromConnection, "toConnection", toConnection ) ) ).build();
+  }
+
+  @GET
+  @Path( "/fileExists" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response fileExists( @QueryParam( "provider" ) String provider,
+                              @QueryParam( "connection" ) String connection,
+                              @QueryParam( "path" ) String path ) {
+
+    return Response
+      .ok( fileBrowserController.fileExists( provider, path, Properties.create( "connection", connection ) ) ).build();
+  }
+
+  @GET
+  @Path( "/getNewName" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response getNewName( @QueryParam( "provider" ) String provider,
+                              @QueryParam( "connection" ) String connection,
+                              @QueryParam( "path" ) String path ) {
+
+    return Response
+      .ok( fileBrowserController.getNewName( provider, path, Properties.create( "connection", connection ) ) ).build();
   }
 
   /**

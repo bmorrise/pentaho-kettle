@@ -22,6 +22,7 @@
 
 package org.pentaho.di.connections;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -75,7 +76,7 @@ public class ConnectionManager {
     return connectionProviders.get( getLookupKey( key ) );
   }
 
-  private String getLookupKey( String value ) {
+  protected String getLookupKey( String value ) {
     for ( LookupFilter lookupFilter : lookupFilters ) {
       String filterValue = lookupFilter.filter( value );
       if ( filterValue != null ) {
@@ -83,20 +84,6 @@ public class ConnectionManager {
       }
     }
     return value;
-  }
-
-  public ConnectionDetails getConnectionDetails( String key, String name ) {
-    ConnectionProvider<? extends ConnectionDetails> connectionProvider = getConnectionProvider( key );
-    if ( connectionProvider != null ) {
-      Class<? extends ConnectionDetails> clazz = connectionProvider.getClassType();
-      try {
-        return getMetaStoreFactory( clazz ).loadElement( name );
-      } catch ( MetaStoreException mse ) {
-        return null;
-      }
-    }
-
-    return null;
   }
 
   @SuppressWarnings( "unchecked" )
@@ -191,7 +178,21 @@ public class ConnectionManager {
     return detailNames;
   }
 
-  public ConnectionDetails loadConnectionDetails( String name ) {
+  public ConnectionDetails getConnectionDetails( String key, String name ) {
+    ConnectionProvider<? extends ConnectionDetails> connectionProvider = getConnectionProvider( key );
+    if ( connectionProvider != null ) {
+      Class<? extends ConnectionDetails> clazz = connectionProvider.getClassType();
+      try {
+        return getMetaStoreFactory( clazz ).loadElement( name );
+      } catch ( MetaStoreException mse ) {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  public ConnectionDetails getConnectionDetails( String name ) {
     List<ConnectionProvider<? extends ConnectionDetails>> providers =
       Collections.list( connectionProviders.elements() );
     for ( ConnectionProvider<? extends ConnectionDetails> provider : providers ) {
@@ -207,11 +208,11 @@ public class ConnectionManager {
     return null;
   }
 
-  public ConnectionDetails getConnectionDetails( String scheme ) {
+  public ConnectionDetails createConnectionDetails( String scheme ) {
     try {
       ConnectionProvider<? extends ConnectionDetails> provider = connectionProviders.get( scheme );
       return provider.getClassType().newInstance();
-    } catch ( InstantiationException | IllegalAccessException e ) {
+    } catch ( Exception e ) {
       return null;
     }
   }
@@ -221,7 +222,7 @@ public class ConnectionManager {
     ConnectionProvider provider = connectionProviders.get( scheme );
     try {
       return getMetaStoreFactory( provider.getClassType() ).getElements();
-    } catch ( MetaStoreException mse ) {
+    } catch ( Exception e ) {
       return Collections.emptyList();
     }
   }

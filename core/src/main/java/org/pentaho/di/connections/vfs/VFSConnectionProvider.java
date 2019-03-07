@@ -32,6 +32,6 @@ import java.util.List;
  */
 public interface VFSConnectionProvider<T extends VFSConnectionDetails> extends ConnectionProvider<T> {
   FileSystemOptions getOpts( T vfsConnectionDetails );
-  List<VFSRoot> getLocations( T vfsConnectionDetails ); //TODO: Return an object with the modified date as well
+  List<VFSRoot> getLocations( T vfsConnectionDetails );
   String getProtocol( T vfsConnectionDetails );
 }

@@ -24,10 +24,10 @@ package org.pentaho.repo.providers.repository;
 
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.repo.controller.RepositoryBrowserController;
-import org.pentaho.repo.providers.File;
-import org.pentaho.repo.providers.FileProvider;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Result;
+import org.pentaho.repo.api.providers.File;
+import org.pentaho.repo.api.providers.FileProvider;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Result;
 import org.pentaho.repo.providers.repository.model.RepositoryTree;
 
 import java.io.InputStream;
@@ -80,11 +80,7 @@ public class RepositoryFileProvider implements FileProvider {
     return null;
   }
 
-  @Override public Result renameFile( String path, String newPath, String overwrite, Properties properties ) {
-    return null;
-  }
-
-  @Override public Result moveFiles( List<String> paths, String newPath, boolean overwrite, Properties properties ) {
+  @Override public Result renameFile( String path, String newPath, boolean overwrite, Properties properties ) {
     return null;
   }
 
@@ -94,5 +90,21 @@ public class RepositoryFileProvider implements FileProvider {
 
   @Override public boolean writeFile( InputStream file, String path, Properties properties, boolean overwrite ) {
     return false;
+  }
+
+  @Override public Result copyFile( String path, String newPath, boolean overwrite, Properties properties ) {
+    return null;
+  }
+
+  @Override public Result fileExists( String path, Properties properties ) {
+    return null;
+  }
+
+  @Override public boolean isSame( String provider, Properties properties ) {
+    return false;
+  }
+
+  @Override public Result getNewName( String path, Properties properties ) {
+    return null;
   }
 }

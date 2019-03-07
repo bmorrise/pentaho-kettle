@@ -48,12 +48,8 @@ define([
     controller: appController
   };
 
-  appController.$inject = [
-    dataService.name,
-    fileService.name,
-    folderService.name,
-    modalService.name,
-    "$location", "$timeout", "$interval", "$state", "$q", "$document"];
+  appController.$inject = [dataService.name, fileService.name, folderService.name,
+    modalService.name, "$location", "$timeout", "$interval", "$state", "$q", "$document"];
 
   /**
    * The App Controller.
@@ -79,7 +75,7 @@ define([
     vm.onMoveFiles = onMoveFiles;
     vm.onCopyFiles = onCopyFiles;
     vm.onSelectFile = onSelectFile;
-    vm.onDeleteFile = onDeleteFile;
+    vm.onDeleteFiles = onDeleteFiles;
     vm.openClicked = openClicked;
     vm.saveClicked = saveClicked;
     vm.okClicked = okClicked;
@@ -580,7 +576,8 @@ define([
      * Called if user selects to delete the selected folder or file.
      */
     //TODO: Change message based on whether or not multiple files are selected
-    function onDeleteFile(files) {
+    //TODO: Get a message based on the provider, file, etc.
+    function onDeleteFiles(files) {
       if (files) {
         vm.files = files;
       }
@@ -602,7 +599,6 @@ define([
     /**
      * Calls the service for removing the file
      */
-    // TODO: Fix issue where if you double-click into a folder and you delete it's a select file
     function commitRemove() {
       if (vm.files.length === 0) {
         folderService.deleteFolder(vm.tree, vm.folder).then(function (parentFolder) {
@@ -655,13 +651,14 @@ define([
       return $q(function (resolve, reject) {
         folderService.createFolder(folder).then(function () {
           resolve();
-        }, function (status) {
-          switch (status) {
-            case 304:
+        }, function (result) {
+          switch (result.status) {
+            case "FILE_COLLISION":
+              // TODO: This should be a file already exists error
               _triggerError(4);
               break;
           }
-          reject();
+          reject(result.status);
         });
       });
     }
@@ -697,40 +694,19 @@ define([
      */
     function moveFiles(from, to) {
       fileService.moveFiles(from, to).then(function (response) {
-        var id = response.data;
-        fileService.handleStatus(id).then(function(data) {
-          completeMove(from, to, data.succeeded);
-        });
-      }, function (status) {
-        switch (status) {
-          case 304:
-            _triggerError(20);
-            break;
-        }
+        console.log("Move Complete");
+        to.loaded = false;
+        // TODO: Do some cleanup here instead of full refresh
+        var parentPath = from[0].path.substr(0, from[0].path.lastIndexOf("/"));
+        var parentFolder = folderService.findFolderByPath(vm.tree, from[0], parentPath);
+        parentFolder.loaded = false;
+        onRefreshFolder();
+      }, function (response) {
+        //console.log(response);
+        console.log("Copy Failed.");
+        onRefreshFolder();
+        // TODO: Trigger error that files couldn't be copied
       });
-    }
-
-    /**
-     *
-     * @param from
-     * @param to
-     * @param movedFiles
-     */
-    function completeMove(from, to, movedFiles) {
-      if (movedFiles.length !== from.length) {
-        //TODO: Show an error that speaks to some files couldn't be moved
-        _triggerError(20);
-      }
-      to.loaded = false;
-      var parentPath = from[0].path.substr(0, from[0].path.lastIndexOf("/"));
-      var parentFolder = folderService.findFolderByPath(vm.tree, from[0], parentPath);
-      for (var i = from.length - 1; i >= 0; i--) {
-        if (movedFiles.indexOf(from[i].path) !== -1) {
-          parentFolder.children.splice(parentFolder.children.indexOf(from[i]), 1);
-          vm.files.splice(vm.files.indexOf(from[i]), 1);
-        }
-      }
-      onRefreshFolder();
     }
 
     /**
@@ -738,17 +714,13 @@ define([
      * @param from
      * @param to
      */
-    //TODO: Show which files were not copied and allow user to select up overwrite or rename
     function copyFiles(from, to) {
       fileService.copyFiles(from, to).then(function (response) {
-        // TODO: If loaded, add the files, if not don't worry about it
+        console.log("Copy Complete");
         to.loaded = false;
-        console.log("Copy Complete.");
-        console.log(response.data);
         onRefreshFolder();
-        // TODO: Show message if some couldn't be copied
       }, function (response) {
-        console.log(response);
+        //console.log(response);
         console.log("Copy Failed.");
         onRefreshFolder();
         // TODO: Trigger error that files couldn't be copied
@@ -763,11 +735,12 @@ define([
      */
     function onRenameFile(file, newPath) {
       return $q(function (resolve, reject) {
-        fileService.renameFile(file, newPath).then(function () {
+        fileService.renameFile(file, newPath).then(function (result) {
+          console.log(result);
           resolve();
-        }, function (status) {
-          switch (status) {
-            case 409:
+        }, function (result) {
+          switch (result.status) {
+            case "FILE_COLLISION":
               _triggerError(11);
               break;
           }
@@ -811,8 +784,8 @@ define([
     function onKeyUp(event) {
       if (event.keyCode === 13 && event.target.id !== "searchBoxId") {
         if ($state.is("open")) {
-          if (vm.file !== null) {
-            onSelectFile(vm.file);
+          if (vm.files.length === 1) {
+            onSelectFile(vm.files[0]);
           }
         } else if (!vm.showRecents) {
           _save(false);
@@ -833,7 +806,7 @@ define([
       var isIE = navigator.userAgent.indexOf("Trident") !== -1 && Boolean(document.documentMode);
       var retVal = vm.searchPlaceholder;
       if (vm.folder.path !== "Recents") {
-        retVal += " " + vm.selectedFolder;
+        retVal += " " + vm.folder.name;
       } else {
         retVal += " " + vm.currentRepo;
       }
@@ -935,9 +908,9 @@ define([
      * Navigate back in the history
      */
     function onBackHistory() {
-      vm.file = null;
+      vm.files = [];
       history.pop();
-      selectFolder(history[history.length - 1]);
+      selectFolderByPath(history[history.length - 1].path);
     }
 
     /**

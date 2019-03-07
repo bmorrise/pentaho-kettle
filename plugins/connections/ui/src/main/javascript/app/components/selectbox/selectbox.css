@@ -8,7 +8,7 @@ selectbox .select {
   width: 100%;
 }
 
-selectbox .select > li {
+selectbox .select > div {
   float: left;
   width: 100%;
   margin-right: 6px;

@@ -47,6 +47,7 @@ define(
         return {
           add: add,
           open: open,
+          setBody: setBody,
           close: close
         };
 
@@ -54,15 +55,24 @@ define(
           modals.push(modal);
         }
 
-        function open(id, title, body) {
-          console.log(modals);
+        function _getModalById(id) {
           for (var i = 0; i < modals.length; i++) {
-            console.log(id, modals[i].id);
             if (modals[i].id === id) {
-              console.log(id);
-              return modals[i].open(title, body);
+              return modals[i]
             }
           }
+        }
+
+        function open(id, title, body) {
+          return _getModalById(id).open(title, body);
+        }
+
+        function close(id) {
+          _getModalById(id).close();
+        }
+
+        function setBody(id, body) {
+          _getModalById(id).setBody(body);
         }
       }
     });

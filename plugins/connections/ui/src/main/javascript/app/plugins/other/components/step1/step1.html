@@ -22,5 +22,5 @@
       <input id="password" class="block" type="text" size="50" ng-model="vm.data.model.password"/>
     </div>
   </div>
-  <controls back="'intro'" next="'summary'" data="vm.data" can-next="vm.canNext()"></controls>
+  <controls back="'intro'" next="'summary'" data="vm.data" can-next="vm.canNext()" apply="vm.data.state=='modify'"></controls>
 </div>

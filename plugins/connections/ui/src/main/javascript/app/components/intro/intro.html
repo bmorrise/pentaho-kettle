@@ -1,4 +1,4 @@
-<error error="vm.errorMessage"></error>
+<message message="vm.errorMessage"></message>
 <div class="main_div">
   <div class="title_text margin_bottom_30 text_center">{{::vm.title}}</div>
   <div class="middle_div margin_bottom_10">
@@ -15,5 +15,5 @@
       <textarea id="connectionDescription" ng-model="vm.data.model.description"></textarea>
     </div>
   </div>
-  <controls data="vm.data" next="vm.next" can-next="vm.canNext()" next-validation="vm.validateName"></controls>
+  <controls data="vm.data" next="vm.next" can-next="vm.canNext()" next-validation="vm.validateName" apply="vm.data.state=='modify'"></controls>
 </div>

@@ -20,14 +20,14 @@
 define([], function() {
   'use strict';
 
-  config.$inject = ['$stateProvider'];
+  config.$inject = ['$stateProvider', '$urlRouterProvider'];
 
   /**
    * The config for the file open save app
    *
    * @param {Object} $stateProvider - Controls the state of the app
    */
-  function config($stateProvider) {
+  function config($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('intro', {
         url: "/intro",
@@ -60,7 +60,8 @@ define([], function() {
           data: null,
           transition: null
         }
-      })
+      });
+    $urlRouterProvider.otherwise("/intro");
   }
   return config;
 });

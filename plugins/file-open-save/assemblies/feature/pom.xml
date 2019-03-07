@@ -19,6 +19,11 @@
   <dependencies>
     <dependency>
       <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>file-open-save-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>file-open-save-core</artifactId>
       <version>${project.version}</version>
     </dependency>

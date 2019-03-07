@@ -37,7 +37,7 @@ define([
 
         function scrollToSelectedFolder() {
           var selectedFolders = document.getElementsByClassName("selected");
-          if (selectedFolders.length === 0) {
+          if (selectedFolders.length === 0 || selectedFolders[0].offsetParent === null) {
             return;
           }
           var selected = angular.element(selectedFolders[0]);

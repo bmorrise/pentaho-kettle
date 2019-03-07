@@ -29,9 +29,9 @@ define([
     controller: introController
   };
 
-  introController.$inject = ["$location", "$state", "$stateParams", "dataService", "vfsTypes"];
+  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "vfsTypes", "$timeout"];
 
-  function introController($location, $state, $stateParams, dataService, vfsTypes) {
+  function introController($location, $state, $q, $stateParams, dataService, vfsTypes, $timeout) {
     var vm = this;
     vm.$onInit = onInit;
     vm.canNext = canNext;
@@ -50,7 +50,7 @@ define([
         vm.data = $stateParams.data;
         vm.type = vm.data.model.type;
         vm.next = vm.data.model.type + "step1";
-        vm.data.edit = true;
+        vm.data.state = vm.data.state === "modify" ? "modify" : "edit";
       } else {
         vm.title = i18n.get('connections.intro.new.label');
         vm.data = {
@@ -59,7 +59,7 @@ define([
             description: ""
           }
         };
-        vm.data.edit = false;
+        vm.data.state = "new";
       }
       var connection = $location.search().connection;
       vm.connectionTypes = vfsTypes;
@@ -73,7 +73,7 @@ define([
           vm.type = model.type;
           vm.data.model = model;
           vm.next = vm.data.model.type + "step1";
-          vm.data.edit = true;
+          vm.data.state = "edit";
         });
       }
     }
@@ -87,25 +87,28 @@ define([
           vm.data.model.name = name;
           vm.data.model.description = description;
           vm.next = vm.data.model.type + "step1";
-          vm.data.edit = false;
+          vm.data.state = "new";
         });
       }
     }
 
-    function validateName(callback) {
-      if (vm.data.edit === true) {
-        callback(true);
-      }
-      dataService.exists(vm.data.model.name).then(function (res) {
-        var isValid = !res.data;
-        if (!isValid) {
-          vm.errorMessage = {
-            message: i18n.get('connections.intro.name.error', {
-              name: vm.data.model.name
-            })
-          }
+    function validateName() {
+      return $q(function(resolve, reject) {
+        if (vm.data.state !== "new") {
+          resolve(true);
         }
-        callback(isValid);
+        dataService.exists(vm.data.model.name).then(function (res) {
+          var isValid = !res.data;
+          if (!isValid) {
+            vm.errorMessage = {
+              type: "error",
+              message: i18n.get('connections.intro.name.error', {
+                name: vm.data.model.name
+              })
+            }
+          }
+          resolve(isValid);
+        });
       });
     }
 

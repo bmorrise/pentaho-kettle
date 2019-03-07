@@ -22,8 +22,8 @@
 
 package org.pentaho.repo.providers.local.model;
 
-import org.pentaho.repo.providers.BaseEntity;
-import org.pentaho.repo.providers.File;
+import org.pentaho.repo.api.providers.BaseEntity;
+import org.pentaho.repo.api.providers.File;
 import org.pentaho.repo.providers.local.LocalFileProvider;
 
 import java.io.IOException;

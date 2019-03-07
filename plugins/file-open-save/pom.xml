@@ -16,6 +16,7 @@
   <name>PDI File Open and Save Plugin</name>
 
   <modules>
+    <module>api</module>
     <module>core</module>
     <module>assemblies</module>
   </modules>

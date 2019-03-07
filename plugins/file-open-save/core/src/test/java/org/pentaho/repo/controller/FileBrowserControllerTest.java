@@ -9,22 +9,17 @@ import org.pentaho.di.connections.vfs.VFSLookupFilter;
 import org.pentaho.di.connections.vfs.providers.other.OtherConnectionDetails;
 import org.pentaho.di.connections.vfs.providers.other.OtherConnectionDetailsProvider;
 import org.pentaho.metastore.stores.memory.MemoryMetaStore;
-import org.pentaho.repo.providers.Properties;
-import org.pentaho.repo.providers.Tree;
-import org.pentaho.repo.providers.Utils;
+import org.pentaho.repo.api.providers.Properties;
+import org.pentaho.repo.api.providers.Result;
+import org.pentaho.repo.api.providers.Tree;
+import org.pentaho.repo.api.providers.Utils;
 import org.pentaho.repo.providers.local.LocalFileProvider;
-import org.pentaho.repo.providers.local.model.LocalFile;
-import org.pentaho.repo.providers.processor.Process;
-import org.pentaho.repo.providers.processor.Processor;
 import org.pentaho.repo.providers.vfs.VFSFileProvider;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -44,12 +39,11 @@ public class FileBrowserControllerTest {
   public void setup() throws Exception {
     connectionManager.get().setMetastoreSupplier( () -> memoryMetaStore );
     connectionManager.get().addConnectionProvider( "other", new OtherConnectionDetailsProvider() );
-    Processor processor = new Processor();
     fileBrowserController = new FileBrowserController( Arrays.asList(
-      new LocalFileProvider( processor ),
-      new VFSFileProvider( processor ),
-      new TestFileProvider( processor )
-    ), processor );
+      new LocalFileProvider(),
+      new VFSFileProvider(),
+      new TestFileProvider()
+    ) );
   }
 
   @Test
@@ -93,10 +87,8 @@ public class FileBrowserControllerTest {
     vfsLookupFilter.addKeyLookup( FTP_SCHEMA, OTHER );
     connectionManager.get().addLookupFilter( vfsLookupFilter );
 
-    List<String> files = Arrays.asList( "ftp://speedtest.tele2.net/2MB.zip" );
-    fileBrowserController.copyFiles( "vfs", "local", files, "/tmp", Properties.create(
-      "fromConnection", CONNECTION_NAME, "toConnection", CONNECTION_NAME
-    ), false );
+    fileBrowserController.copyFile( "vfs", "local", "ftp://speedtest.tele2.net/2MB.zip", "/tmp/2MB.zip", true,
+      Properties.create( "fromConnection", CONNECTION_NAME, "toConnection", CONNECTION_NAME ) );
   }
 
   @Test
@@ -116,20 +108,9 @@ public class FileBrowserControllerTest {
       bufferedOutputStream.write( "This is a test".getBytes() );
     }
 
-    List<String> files = Collections.singletonList( "/tmp/testfile.txt" );
-    fileBrowserController.copyFiles( "local", "vfs", files, "ftp://speedtest.tele2.net/upload/", Properties.create(
-      "fromConnection", CONNECTION_NAME, "toConnection", CONNECTION_NAME
-    ), false );
-  }
-
-  @Test
-  public void testListDirectory() {
-    LocalFileProvider localFileProvider = new LocalFileProvider( new Processor() );
-    List<LocalFile> files = localFileProvider.getFiles( "/Users/bmorrise/Desktop", null, null );
-    for ( LocalFile file : files ) {
-      System.out.println( file.getName() );
-      System.out.println( file.getPath() );
-    }
+    fileBrowserController
+      .copyFile( "local", "vfs", "/tmp/testfile.txt", "ftp://speedtest.tele2.net/upload/testfile.txt", true,
+        Properties.create( "fromConnection", CONNECTION_NAME, "toConnection", CONNECTION_NAME ) );
   }
 
   @Test
@@ -137,12 +118,14 @@ public class FileBrowserControllerTest {
     fileBrowserController.addFolder( "none", "testpath", Properties.create( "connection", "testconnection" ) );
   }
 
+  @Test
+  public void testGetNewName() throws Exception {
+    Result result = fileBrowserController.getNewName( "local", "/tmp/test", Properties.create() );
+    System.out.println( result.getData() );
+  }
+
   public class TestFileProvider extends LocalFileProvider {
     private static final String TYPE = "test";
-
-    public TestFileProvider( Processor processor ) {
-      super( processor );
-    }
 
     @Override public String getType() {
       return TYPE;

@@ -53,6 +53,7 @@ define([
     }
 
     function onEditConnection() {
+      vm.data.state = "edit";
       $state.go("intro", {data: vm.data});
     }
   }

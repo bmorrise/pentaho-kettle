@@ -17,19 +17,19 @@
         </div>
       </div>
     </div>
-    <div class="margin_bottom_15">
+    <div class="margin_bottom_15" ng-repeat="section in vm.data.sections">
       <div class="section_header">
-        <label class="margin_bottom_5 block text_left">{{::vm.connectionDetails}}</label>
-        <div class="edit" ng-click="vm.onEditClick(vm.data.model.type + 'step1')"></div>
+        <label class="margin_bottom_5 block text_left">{{section.title}}</label>
+        <div class="edit" ng-click="vm.onEditClick(section.editLink)"></div>
       </div>
       <div class="group_holder">
-        <div class="group" ng-repeat="(key, value) in vm.data.mapping">
-          <div class="label">{{vm.data.mapping[key]}}</div>
+        <div class="group" ng-repeat="(key, value) in section.mapping">
+          <div class="label">{{section.mapping[key]}}</div>
           <div class="value" title="{{vm.data.model[key]}}">{{vm.data.model[key]}}</div>
         </div>
       </div>
     </div>
-    <div class="margin_bottom_15">
+    <div class="margin_bottom_15" ng-if="vm.data.model.description">
       <div class="section_header">
         <label class="margin_bottom_5 block text_left">{{::vm.description}}</label>
         <div class="edit" ng-click="vm.onEditClick('intro')"></div>
