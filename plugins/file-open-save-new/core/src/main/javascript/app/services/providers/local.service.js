@@ -67,12 +67,13 @@ define(
         }
 
         function resolvePath(path, properties) {
-           var self = this;
+          var self = this;
+          var varRoot = this.root;
           return $q(function (resolve, reject) {
             if (fileutil.isWindows(path)) {
               path = fileutil.convertWindowsPath(path);
             }
-            resolve(self.root + path);
+            resolve(varRoot + path);
           });
         }
 

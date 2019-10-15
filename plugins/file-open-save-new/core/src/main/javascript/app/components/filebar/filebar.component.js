@@ -25,18 +25,22 @@
 define([
   "pentaho/i18n-osgi!file-open-save-new.messages",
   "text!./filebar.html",
+  "text!./supported_file_filters.json",
   "css!./filebar.css"
-], function (i18n, filebarTemplate) {
+], function (i18n, filebarTemplate, supportedFileFilters ) {
   "use strict";
 
   var options = {
     bindings: {
+      // FIXME why can't use camel case here
+      myselectedfile: "<",
+      filetypes: "<",
       path: '<',
       state: "<",
       filename: "=",
       onSelectFilter: "&",
       onOpenClick: "&",
-      onOKClick: "&",
+      onOkClick: "&",
       onSaveClick: "&",
       onCancelClick: "&"
     },
@@ -59,28 +63,10 @@ define([
     vm.onSelect = onSelect;
     vm.onChange = onChange;
 
-    vm.fileFilters = [
-        {
-          value: "all",
-          label: "All Files"
-        },
-        {
-          value: "\\.kjb$|\\.ktr$",
-          label: "Kettle Files"
-        },
-        {
-          value: "\\.csv$",
-          label: "*.csv"
-        },
-        {
-          value: "\\.txt$",
-          label: "*.txt"
-        },
-        {
-          value: "\\.json$",
-          label: "*.json"
-        }
-      ];
+    // FIXME DEBUG
+    vm.isDisabled = isDisabled;
+
+    vm.fileFilters = [];
 
     /**
      * The $onInit} hook of components lifecycle which is called on each controller
@@ -98,6 +84,10 @@ define([
       vm.fileFilterLabel = i18n.get("file-open-save-plugin.app.save.file-filter.label");
       vm.saveFileNameLabel = i18n.get("file-open-save-plugin.app.save.file-name.label");
 
+      var filterSet = new Set(vm.filetypes ? vm.filetypes : ["ALL"]); // TODO move to a service
+      var parsedSupportedFileFilters = JSON.parse(supportedFileFilters);
+      vm.fileFilters = parsedSupportedFileFilters.filter(fltr => filterSet.has(fltr.id));
+
       vm.selectedFilter = vm.fileFilters[0].value;
     }
 
@@ -111,6 +101,10 @@ define([
       $timeout(function() {
         _update();
       });
+
+      if (changes.myselectedfile) {
+        this.isDisabled();
+      }
     }
 
     function onSelect(filter) {
@@ -123,6 +117,33 @@ define([
 
     function _update() {
       vm.isSaveEnabled = vm.filename === '' || !vm.path;
+    }
+
+    function isDisabled() {
+      var enabled = true;
+      if ( vm.state.is('selectFolder') ) {
+        enabled = _hasFileType(vm.myselectedfile) && _isFolder(vm.myselectedfile);
+      }
+      else if ( vm.state.is('selectFile') ) {
+        enabled = _hasFileType(vm.myselectedfile) && !_isFolder(vm.myselectedfile);
+      }
+      else if ( vm.state.is('open') ) {
+        // TODO what/how is filename set
+        enabled = !vm.filename;
+      }
+      return !enabled;
+    }
+
+    function _hasFileType(file) {
+      return file && file.type;
+    }
+
+    function _isFolder(file) {
+      return file.type='folder';
+    }
+
+    function getFileFolderObject() {
+      return vm.selectedFiles.length === 1 ? vm.selectedFiles[0] : vm.folder;
     }
   }
 

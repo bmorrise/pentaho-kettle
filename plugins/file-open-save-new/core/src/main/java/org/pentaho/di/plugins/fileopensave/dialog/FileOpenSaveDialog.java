@@ -36,6 +36,7 @@ import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.platform.settings.ServerPort;
 import org.pentaho.platform.settings.ServerPortRegistry;
+import org.eclipse.swt.browser.Browser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -127,11 +128,17 @@ public class FileOpenSaveDialog extends ThinDialog {
 
     new BrowserFunction( browser, "select" ) {
       @Override public Object function( Object[] arguments ) {
-        setProperties( arguments );
+        try {
+          setProperties( arguments ); // TODO change to map/json to avoid array out of bounds and graceful addition of args
 
-        browser.dispose();
-        dialog.close();
-        dialog.dispose();
+          browser.dispose();
+          dialog.close();
+          dialog.dispose();
+        }
+        catch(Exception e) {
+          // TODO handle exception better
+          System.out.println("Error in processing select() from file-open-save app: " + e.toString() );
+        }
         return true;
       }
     };
@@ -141,6 +148,12 @@ public class FileOpenSaveDialog extends ThinDialog {
         display.sleep();
       }
     }
+  }
+
+  private void closeBrowser( Browser browser) {
+    browser.dispose();
+    dialog.close();
+    dialog.dispose();
   }
 
   private void setProperties( Object[] arguments ) {

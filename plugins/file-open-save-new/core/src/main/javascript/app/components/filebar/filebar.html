@@ -21,17 +21,17 @@
         {{::vm.cancelButton}}
       </span>
   </button>
-  <button class="primary" ng-if="vm.state.is('selectFolder')" ng-click="vm.onOKClick()" ng-disabled="!vm.file">
+  <button class="primary" ng-if="vm.state.is('selectFolder')" ng-click="vm.onOkClick()" ng-disabled="vm.isDisabled()">
       <span>
         {{::vm.okButton}}
       </span>
   </button>
-  <button class="primary" ng-if="vm.state.is('selectFile')" ng-click="vm.onOKClick()" ng-disabled="vm.file.type!='file'">
+  <button class="primary" ng-if="vm.state.is('selectFile')" ng-click="vm.onOkClick()" ng-disabled="vm.isDisabled()">
       <span>
         {{::vm.okButton}}
       </span>
   </button>
-  <button class="primary" ng-if="vm.state.is('open')" ng-click="vm.onOpenClick()" ng-disabled="!vm.filename">
+  <button class="primary" ng-if="vm.state.is('open')" ng-click="vm.onOpenClick()" ng-disabled="vm.isDisabled()">
       <span>
         {{::vm.openButton}}
       </span>
