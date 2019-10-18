@@ -123,7 +123,7 @@ public abstract class SelectionAdapterFileDialog<T> extends SelectionAdapter {
 
         // FIXME is the returned path going to still have vfs schema
         // TODO HERE should we keep the original path with the unresolved variables/parameters
-        selectedFile = KettleVFS.getFileObject( path );
+        selectedFile = getFileObject( path );
       } catch ( KettleFileException kfe ) {
         log.logError( "Error in widgetSelectedHelper", kfe );
       }
@@ -158,6 +158,17 @@ public abstract class SelectionAdapterFileDialog<T> extends SelectionAdapter {
     // fields title, fileType not used by VFS
 
     return fileDialogOperation;
+  }
+
+  protected FileObject getFileObject( String path) {
+    FileObject fileObject;
+    try {
+      fileObject = KettleVFS.getFileObject( path );
+    }
+    catch ( Exception e) {
+      fileObject = null;
+    }
+    return fileObject;
   }
 
   protected FileObject resolveFile( AbstractMeta abstractMeta, String unresolvedPath ) throws KettleFileException {
@@ -259,10 +270,16 @@ public abstract class SelectionAdapterFileDialog<T> extends SelectionAdapter {
   }
 
   protected String constructPath( FileDialogOperation fileDialogOperation ) {
-    return isProviderRepository( fileDialogOperation )
+    String path;
+    try {
+      path = isProviderRepository( fileDialogOperation )
         ? getRepositoryFilePath( fileDialogOperation )
         // TODO does this work for provider=vfs
         : getFilePath( fileDialogOperation );
+    } catch (Exception e) {
+      path = null;
+    }
+    return path;
   }
 
   protected String getRepositoryFilePath( FileDialogOperation fileDialogOperation ) {
