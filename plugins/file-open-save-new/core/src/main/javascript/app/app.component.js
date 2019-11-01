@@ -141,7 +141,7 @@ define([
       vm.fileType = $location.search().fileType;
       vm.origin = $location.search().origin;
       vm.filter = $location.search().filter;
-      vm.filetypes = vm.filter ? vm.filter.split(',') : false;
+      vm.fileTypes = vm.filter ? vm.filter.split(',') : false;
       vm.tree = [
         {name: "Recents", hasChildren: false, provider: "recents", order: 0}
       ];
@@ -301,7 +301,6 @@ define([
     }
 
     function _update() {
-
       vm.folder = folderService.folder;
       vm.selectedFiles = fileService.files;
       vm.breadcrumbPath = folderService.getBreadcrumbPath(vm.selectedFiles.length === 1 ? vm.selectedFiles[0] : vm.folder);
@@ -317,6 +316,8 @@ define([
       vm.fileList = _getFiles();
       if (vm.selectedFiles.length === 1) {
         vm.fileToSave = vm.selectedFiles[0].type === "folder" ? vm.fileToSave : vm.selectedFiles[0].name;
+      } else {
+        vm.fileToSave = "";
       }
       vm.errorFiles = vm.selectedFiles;
     }
@@ -332,7 +333,7 @@ define([
       if (file.type === "folder") {
         vm.searchString = "";
         selectFolder(file);
-      } else if ($state.is("open")) {
+      } else if ($state.is("open") || $state.is("selectFile") || $state.is("selectFolder")) {
         _open(file);
       }
     }

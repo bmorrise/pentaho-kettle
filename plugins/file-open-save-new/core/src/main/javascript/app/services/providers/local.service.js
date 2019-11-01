@@ -161,7 +161,13 @@ define(
         }
 
         function open(file) {
-          select(null, file.name, file.path, file.parent, file.connection, file.provider, null);
+          select(JSON.stringify({
+            name: file.name,
+            path: file.path,
+            parent: file.parent,
+            connection: file.connection,
+            provider: file.provider
+          }));
         }
 
         function save(filename, folder, currentFilename, override) {

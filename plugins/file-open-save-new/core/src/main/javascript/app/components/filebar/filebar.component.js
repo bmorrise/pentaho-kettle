@@ -27,20 +27,19 @@ define([
   "text!./filebar.html",
   "text!./supported_file_filters.json",
   "css!./filebar.css"
-], function (i18n, filebarTemplate, supportedFileFilters ) {
+], function (i18n, filebarTemplate, supportedFileFilters) {
   "use strict";
 
   var options = {
     bindings: {
-      // FIXME why can't use camel case here
-      myselectedfile: "<",
-      filetypes: "<",
+      selectedFile: "<",
+      fileTypes: "<",
       path: '<',
       state: "<",
       filename: "=",
+      fileType: "<",
       onSelectFilter: "&",
       onOpenClick: "&",
-      onOkClick: "&",
       onSaveClick: "&",
       onCancelClick: "&"
     },
@@ -63,9 +62,7 @@ define([
     vm.onSelect = onSelect;
     vm.onChange = onChange;
 
-    // FIXME DEBUG
-    vm.isDisabled = isDisabled;
-
+    vm.disabled = true;
     vm.fileFilters = [];
 
     /**
@@ -84,7 +81,7 @@ define([
       vm.fileFilterLabel = i18n.get("file-open-save-plugin.app.save.file-filter.label");
       vm.saveFileNameLabel = i18n.get("file-open-save-plugin.app.save.file-name.label");
 
-      var filterSet = new Set(vm.filetypes ? vm.filetypes : ["ALL"]); // TODO move to a service
+      var filterSet = new Set(vm.fileTypes ? vm.fileTypes : ["ALL"]); // TODO move to a service
       var parsedSupportedFileFilters = JSON.parse(supportedFileFilters);
       vm.fileFilters = parsedSupportedFileFilters.filter(fltr => filterSet.has(fltr.id));
 
@@ -98,13 +95,9 @@ define([
      * that have changed, and the values are an object of the form
      */
     function onChanges(changes) {
-      $timeout(function() {
+      $timeout(function () {
         _update();
       });
-
-      if (changes.myselectedfile) {
-        this.isDisabled();
-      }
     }
 
     function onSelect(filter) {
@@ -117,21 +110,19 @@ define([
 
     function _update() {
       vm.isSaveEnabled = vm.filename === '' || !vm.path;
+      _isDisabled();
     }
 
-    function isDisabled() {
+    function _isDisabled() {
       var enabled = true;
-      if ( vm.state.is('selectFolder') ) {
-        enabled = _hasFileType(vm.myselectedfile) && _isFolder(vm.myselectedfile);
+      if (vm.state.is('selectFolder')) {
+        enabled = _hasFileType(vm.selectedFile) && _isFolder(vm.selectedFile);
+      } else if (vm.state.is('selectFile')) {
+        enabled = _hasFileType(vm.selectedFile) && !_isFolder(vm.selectedFile);
+      } else if (vm.state.is('open')) {
+        enabled = vm.filename;
       }
-      else if ( vm.state.is('selectFile') ) {
-        enabled = _hasFileType(vm.myselectedfile) && !_isFolder(vm.myselectedfile);
-      }
-      else if ( vm.state.is('open') ) {
-        // TODO what/how is filename set
-        enabled = !vm.filename;
-      }
-      return !enabled;
+      vm.disabled = !enabled;
     }
 
     function _hasFileType(file) {
@@ -139,11 +130,7 @@ define([
     }
 
     function _isFolder(file) {
-      return file.type='folder';
-    }
-
-    function getFileFolderObject() {
-      return vm.selectedFiles.length === 1 ? vm.selectedFiles[0] : vm.folder;
+      return file.type === "folder";
     }
   }
 

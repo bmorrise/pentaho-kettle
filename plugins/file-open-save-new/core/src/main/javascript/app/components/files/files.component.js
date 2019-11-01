@@ -135,7 +135,6 @@ define([
         parentNode = parentNode.parentNode;
       }
       if (!found) {
-        vm.selectedFiles = [];
         vm.highlighted = [];
       }
     }

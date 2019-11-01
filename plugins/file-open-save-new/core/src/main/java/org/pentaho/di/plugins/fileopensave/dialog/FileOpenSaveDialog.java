@@ -30,7 +30,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.exception.KettleException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -59,13 +61,18 @@ public class FileOpenSaveDialog extends ThinDialog {
   private static final String THIN_CLIENT_HOST = "THIN_CLIENT_HOST";
   private static final String THIN_CLIENT_PORT = "THIN_CLIENT_PORT";
   private static final String LOCALHOST = "localhost";
-  public static final String PATH = "path";
-  public static final String CONNECTION = "connection";
-  public static final String PROVIDER = "provider";
-  public static final String FILTER = "filter";
-  public static final String ORIGIN = "origin";
-  public static final String FILENAME = "filename";
-  public static final String FILE_TYPE = "fileType";
+
+  public static final String PATH_PARAM = "path";
+  public static final String CONNECTION_PARAM = "connection";
+  public static final String PROVIDER_PARAM = "provider";
+  public static final String FILTER_PARAM = "filter";
+  public static final String ORIGIN_PARAM = "origin";
+  public static final String FILENAME_PARAM = "filename";
+  public static final String FILE_TYPE_PARM = "fileType";
+  public static final String OBJECT_ID_PARAM = "objectId";
+  public static final String NAME_PARAM = "name";
+  public static final String PARENT_PARAM = "parent";
+  public static final String TYPE_PARAM = "type";
 
   private String objectId;
   private String name;
@@ -77,11 +84,6 @@ public class FileOpenSaveDialog extends ThinDialog {
 
   public FileOpenSaveDialog( Shell shell, int width, int height ) {
     super( shell, width, height );
-  }
-
-  public void open( String path, String connection, String provider, String state, String title, String filter,
-                    String origin ) {
-    open( path, state, title, filter, origin, null, "" );
   }
 
   private void addParameter( String path, List<NameValuePair> parameters, String name, String value ) {
@@ -103,13 +105,13 @@ public class FileOpenSaveDialog extends ThinDialog {
     clientPath.append( !Utils.isEmpty( state ) ? "#/" + state : "" );
 
     List<NameValuePair> parameters = new ArrayList<>();
-    addParameter( path, parameters, PATH, path );
-    addParameter( path, parameters, CONNECTION, connection );
-    addParameter( path, parameters, PROVIDER, provider );
-    addParameter( path, parameters, FILTER, filter );
-    addParameter( path, parameters, ORIGIN, origin );
-    addParameter( path, parameters, FILENAME, filename );
-    addParameter( path, parameters, FILE_TYPE, fileType );
+    addParameter( path, parameters, PATH_PARAM, path );
+    addParameter( path, parameters, CONNECTION_PARAM, connection );
+    addParameter( path, parameters, PROVIDER_PARAM, provider );
+    addParameter( path, parameters, FILTER_PARAM, filter );
+    addParameter( path, parameters, ORIGIN_PARAM, origin );
+    addParameter( path, parameters, FILENAME_PARAM, filename );
+    addParameter( path, parameters, FILE_TYPE_PARM, fileType );
     String queryParams = URLEncodedUtils.format( parameters, "UTF-8" );
     clientPath.append( "?" ).append( queryParams );
 
@@ -119,9 +121,7 @@ public class FileOpenSaveDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
-        browser.dispose();
-        dialog.close();
-        dialog.dispose();
+        closeBrowser( browser );
         return true;
       }
     };
@@ -129,15 +129,11 @@ public class FileOpenSaveDialog extends ThinDialog {
     new BrowserFunction( browser, "select" ) {
       @Override public Object function( Object[] arguments ) {
         try {
-          setProperties( arguments ); // TODO change to map/json to avoid array out of bounds and graceful addition of args
-
-          browser.dispose();
-          dialog.close();
-          dialog.dispose();
-        }
-        catch(Exception e) {
+          setProperties( arguments );
+          closeBrowser( browser );
+        } catch ( Exception e ) {
           // TODO handle exception better
-          System.out.println("Error in processing select() from file-open-save app: " + e.toString() );
+          System.out.println( "Error in processing select() from file-open-save app: " + e.toString() );
         }
         return true;
       }
@@ -150,20 +146,25 @@ public class FileOpenSaveDialog extends ThinDialog {
     }
   }
 
-  private void closeBrowser( Browser browser) {
+  private void closeBrowser( Browser browser ) {
     browser.dispose();
     dialog.close();
     dialog.dispose();
   }
 
-  private void setProperties( Object[] arguments ) {
-    objectId = (String) arguments[ 0 ];
-    name = (String) arguments[ 1 ];
-    path = (String) arguments[ 2 ];
-    parentPath = (String) arguments[ 3 ];
-    connection = (String) arguments[ 4 ];
-    provider = (String) arguments[ 5 ];
-    type = (String) arguments[ 6 ];
+  private void setProperties( Object[] arguments ) throws ParseException {
+    if ( arguments.length == 1 ) {
+      String jsonString = (String) arguments[ 0 ];
+      JSONParser jsonParser = new JSONParser();
+      JSONObject jsonObject = (JSONObject) jsonParser.parse( jsonString );
+      objectId = (String) jsonObject.get( OBJECT_ID_PARAM );
+      name = (String) jsonObject.get( NAME_PARAM );
+      path = (String) jsonObject.get( PATH_PARAM );
+      parentPath = (String) jsonObject.get( PARENT_PARAM );
+      connection = (String) jsonObject.get( CONNECTION_PARAM );
+      provider = (String) jsonObject.get( PROVIDER_PARAM );
+      type = (String) jsonObject.get( TYPE_PARAM );
+    }
   }
 
   private static String getClientPath() {
@@ -199,7 +200,7 @@ public class FileOpenSaveDialog extends ThinDialog {
     return "http://" + host + ":" + port + path;
   }
 
-  private static String getKettleProperty( String propertyName ) throws KettleException {
+  private static String getKettleProperty( String propertyName ) {
     // loaded in system properties at startup
     return System.getProperty( propertyName );
   }

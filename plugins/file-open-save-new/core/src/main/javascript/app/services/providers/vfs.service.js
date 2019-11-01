@@ -30,7 +30,7 @@ define(
     function (utils, i18n) {
       "use strict";
 
-      var factoryArray = ["helperService", "$http", "$q", factory];
+      var factoryArray = ["helperService", "$http", "$q", "$location", factory];
       var module = {
         name: "vfsService",
         factory: factoryArray
@@ -47,7 +47,7 @@ define(
        *
        * @return {Object} The dataService api
        */
-      function factory(helperService, $http, $q) {
+      function factory(helperService, $http, $q, $location) {
         var baseUrl = "/cxf/browser-new";
         return {
           provider: "vfs",
@@ -149,7 +149,7 @@ define(
         }
 
         function _getFilePath(file) {
-          if (file.connectionPath) {
+          if (file.connectionPath && $location.search().pathType === "pvfs") {
             return file.connectionPath;
           }
           return file.path ? file.path : null;
@@ -216,7 +216,13 @@ define(
         }
 
         function open(file) {
-          select(null, file.name, _getFilePath(file), file.parent, file.connection, file.provider, null);
+          select(JSON.stringify({
+            name: file.name,
+            path: _getFilePath(file),
+            parent: file.parent,
+            connection: file.connection,
+            provider: file.provider
+          }));
         }
 
         function save(filename, folder, currentFilename, override) {
